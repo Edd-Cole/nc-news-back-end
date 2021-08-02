@@ -8,17 +8,39 @@ beforeEach(() => seed(testData));
 afterAll(() => db.end());
 
 describe("/api", () => {
-    describe("/topics - GET", () => {
-        test("status 200 - returns all the topics", () => {
-            return request(app).get("/api/topics").expect(200)
-                .then((response) => {
-                    response.body.topics.forEach(topic => {
-                        expect(topic).toMatchObject({
-                            slug: expect.any(String),
-                            description: expect.any(String)
+    describe("/topics", () => {
+        describe("/ - GET", () => {
+            test("status 200 - returns all the topics", () => {
+                return request(app).get("/api/topics").expect(200)
+                    .then((response) => {
+                        response.body.topics.forEach(topic => {
+                            expect(topic).toMatchObject({
+                                slug: expect.any(String),
+                                description: expect.any(String)
+                            })
                         })
                     })
-                })
+            })
+        })
+    })
+
+    describe("/articles", () => {
+        describe("/ - GET", () => {
+            test("status 200 - returns all the articles", () => {
+                return request(app).get("/api/articles").expect(200)
+                    .then(response => {
+                        response.body.articles.forEach(article => {
+                            expect(article).toMatchObject({
+                                article_id: expect.any(Number),
+                                title: expect.any(String),
+                                body: expect.any(String),
+                                votes: expect.any(Number),
+                                topic: expect.any(String),
+                                author: expect.any(String),
+                            })
+                        })
+                    })
+            })
         })
     })
 })
