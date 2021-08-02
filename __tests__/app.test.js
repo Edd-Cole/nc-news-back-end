@@ -66,7 +66,18 @@ describe("/api", () => {
     describe("/comments", () => {
         describe("/ - GET", () => {
             test("status 200 - returns all the comments", () => {
-
+                return request(app).get("/api/comments").expect(200)
+                    .then(response => {
+                        response.body.comments.forEach(comment => {
+                            expect(comment).toMatchObject({
+                                comment_id: expect.any(Number),
+                                author: expect.any(String),
+                                title: expect.any(String),
+                                votes: expect.any(Number),
+                                body: expect.any(String)
+                            })
+                        })
+                    })
             })
         })
     })
