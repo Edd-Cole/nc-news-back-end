@@ -1,6 +1,6 @@
 const db = require("../connection.js")
 const format = require("pg-format")
-const { formatTopics } = require("../utils/data-manipulation.js")
+const { formatTopics, formatUsers, formatArticles, formatComments } = require("../utils/data-manipulation.js")
 
 const seed = async(data) => {
     const { articleData, commentData, topicData, userData } = data;
@@ -20,35 +20,30 @@ const seed = async(data) => {
         name VARCHAR(60) NOT NULL
     )`)
     await db.query(`CREATE TABLE articles (
-            article_id SERIAL NOT NULL PRIMARY KEY,
-            title VARCHAR(127) NOT NULL,
-            body TEXT,
-            votes INT NOT NULL DEFAULT 0,
-            topic TEXT REFERENCES topics (slug) NOT NULL,
-            author VARCHAR(40) REFERENCES users (username) NOT NULL,
-            created_at TIME DEFAULT CURRENT_TIME,
-            created_on DATE DEFAULT CURRENT_DATE
-        )`)
+                article_id SERIAL NOT NULL PRIMARY KEY,
+                title VARCHAR(127) NOT NULL,
+                body TEXT,
+                votes INT NOT NULL DEFAULT 0,
+                topic TEXT REFERENCES topics (slug) NOT NULL,
+                author VARCHAR(40) REFERENCES users (username) NOT NULL,
+                created_at DATE NOT NULL
+            )`)
     await db.query(`CREATE TABLE comments (
-            comment_id SERIAL PRIMARY KEY NOT NULL,
-            author VARCHAR(40) REFERENCES users (username) NOT NULL,
-            article_id INT REFERENCES articles (article_id) NOT NULL,
-            votes INT DEFAULT 0,
-            created_at TIME DEFAULT CURRENT_TIME,
-            created_on DATE DEFAULT CURRENT_DATE,
-            body TEXT NOT NULL
-        )`)
-
-    //Data Insertion
+                comment_id SERIAL PRIMARY KEY NOT NULL,
+                author VARCHAR(40) REFERENCES users (username) NOT NULL,
+                article_id INT REFERENCES articles (article_id) NOT NULL,
+                votes INT DEFAULT 0,
+                created_at DATE DEFAULT CURRENT_DATE,
+                body TEXT NOT NULL
+            )`)
+        //Data Insertion
     const topicsArray = formatTopics(topicData);
     const topicsStringFormat = format(`INSERT INTO topics
-            (slug, description)
-        VALUES
-            %L`, topicsArray)
+                (slug, description)
+            VALUES
+                %L`, topicsArray)
     await db.query(topicsStringFormat)
 
-
-    //Need to create users Array from data!!!!!!
     const usersArray = formatUsers(userData)
     const usersStringFormat = format(`INSERT INTO users 
             (username, avatar_url, name)
@@ -56,7 +51,17 @@ const seed = async(data) => {
             %L`, usersArray)
     await db.query(usersStringFormat)
 
-    // return db.query("SELECT * FROM topics;").then((topics) => { console.log(topics.rows) })
+    // create references
+    // for articles
+    // for proper formatting
+    const articlesArray = formatArticles(articleData)
+    const articlesStringFormat = format(`INSERT INTO articles
+            (title, body, votes,topic, author, created_at)
+        VALUES
+            %L`, articlesArray)
+    await db.query(articlesStringFormat)
+
+    // return db.query("SELECT * FROM articles;").then((topics) => { console.log(topics.rows) })
 };
 
 module.exports = seed;

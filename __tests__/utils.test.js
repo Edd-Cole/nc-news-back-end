@@ -1,4 +1,5 @@
-const { formatTopics, formatUsers } = require("../db/utils/data-manipulation.js");
+const { formatTopics, formatUsers, createArticlesReference, formatArticles } = require("../db/utils/data-manipulation.js");
+const db = require("../db/connection.js")
 
 describe("Utility functions db/utils/data-manip", () => {
     describe("formatTopics()", () => {
@@ -89,7 +90,7 @@ describe("Utility functions db/utils/data-manip", () => {
         })
     })
 
-    describe.only("formatUsers()", () => {
+    describe("formatUsers()", () => {
         test("creates an array of arrays with the information in the correct order", () => {
             const users = [{
                     username: 'butter_bridge',
@@ -201,6 +202,110 @@ describe("Utility functions db/utils/data-manip", () => {
             formatUsers(users);
             users.forEach((user, index) => {
                 expect(user).toEqual(newUsers[index])
+            })
+        })
+    })
+
+    describe("formatArticles()", () => {
+        test("creates an array of arrays with the info in the correct order", () => {
+            const articles = [{
+                title: 'Living in the shadow of a great man',
+                topic: 'mitch',
+                author: 'butter_bridge',
+                body: 'I find this existence challenging',
+                created_at: new Date(1594329060000),
+                votes: 100
+            }, {
+                title: 'Eight pug gifs that remind me of mitch',
+                topic: 'mitch',
+                author: 'icellusedkars',
+                body: 'some gifs',
+                created_at: new Date(1604394720000),
+                votes: 0
+            }, {
+                title: 'UNCOVERED: catspiracy to bring down democracy',
+                topic: 'cats',
+                author: 'rogersop',
+                body: 'Bastet walks amongst us, and the cats are taking arms!',
+                created_at: new Date(1596464040000),
+                votes: 0
+            }]
+            expect(formatArticles(articles)).toEqual([
+                ["Living in the shadow of a great man", 'I find this existence challenging', 100, 'mitch', 'butter_bridge', new Date(1594329060000)],
+                ['Eight pug gifs that remind me of mitch', 'some gifs', 0, 'mitch', 'icellusedkars', new Date(1604394720000)],
+                ['UNCOVERED: catspiracy to bring down democracy', 'Bastet walks amongst us, and the cats are taking arms!', 0, "cats", 'rogersop', new Date(1596464040000)]
+            ])
+        })
+
+        test("creates a new array when invoked", () => {
+            const articles = [];
+            expect(formatArticles(articles)).not.toBe(articles);
+        })
+
+        test("creates new inner array when invoked", () => {
+            const articles = [{
+                title: 'Living in the shadow of a great man',
+                topic: 'mitch',
+                author: 'butter_bridge',
+                body: 'I find this existence challenging',
+                created_at: new Date(1594329060000),
+                votes: 100
+            }, {
+                title: 'Eight pug gifs that remind me of mitch',
+                topic: 'mitch',
+                author: 'icellusedkars',
+                body: 'some gifs',
+                created_at: new Date(1604394720000),
+                votes: 0
+            }, {
+                title: 'UNCOVERED: catspiracy to bring down democracy',
+                topic: 'cats',
+                author: 'rogersop',
+                body: 'Bastet walks amongst us, and the cats are taking arms!',
+                created_at: new Date(1596464040000),
+                votes: 0
+            }]
+            const newArticles = formatArticles(articles)
+            newArticles.forEach((article, index) => {
+                expect(article).not.toBe(articles[index])
+            })
+        })
+
+        test("does not mutate original array", () => {
+            const articles = [];
+            formatArticles(articles)
+            expect(articles).toEqual([]);
+        })
+
+        test("does not mutate objects in original array", () => {
+            const articles = [{
+                title: 'Living in the shadow of a great man',
+                topic: 'mitch',
+                author: 'butter_bridge',
+                body: 'I find this existence challenging',
+                created_at: new Date(1594329060000),
+                votes: 100
+            }, {
+                title: 'Eight pug gifs that remind me of mitch',
+                topic: 'mitch',
+                author: 'icellusedkars',
+                body: 'some gifs',
+                created_at: new Date(1604394720000),
+                votes: 0
+            }, {
+                title: 'UNCOVERED: catspiracy to bring down democracy',
+                topic: 'cats',
+                author: 'rogersop',
+                body: 'Bastet walks amongst us, and the cats are taking arms!',
+                created_at: new Date(1596464040000),
+                votes: 0
+            }];
+            const newArticles = articles.map(article => {
+                return {...article }
+            })
+            formatArticles(articles);
+            articles.forEach((article, index) => {
+                expect(article).toEqual(newArticles[index])
             })
         })
     })

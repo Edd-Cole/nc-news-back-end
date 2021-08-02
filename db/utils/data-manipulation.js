@@ -10,4 +10,11 @@ const formatUsers = (users) => {
     })
 }
 
-module.exports = { formatTopics, formatUsers }
+const formatArticles = (articles) => {
+    return articles.map(article => {
+        const { title, body, votes, topic, author, created_at } = article;
+        return [title, body, votes, topic, author, created_at];
+    })
+}
+
+module.exports = { formatTopics, formatUsers, formatArticles }
