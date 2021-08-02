@@ -1,6 +1,6 @@
 const db = require("../connection.js")
 const format = require("pg-format")
-const { formatTopics, formatUsers, formatArticles, formatComments } = require("../utils/data-manipulation.js")
+const { formatTopics, formatUsers, formatArticles, formatComments, createRefTable, replaceBelongsToWithArticleID } = require("../utils/data-manipulation.js")
 
 const seed = async(data) => {
     const { articleData, commentData, topicData, userData } = data;
@@ -57,8 +57,17 @@ const seed = async(data) => {
         VALUES
             %L`, articlesArray)
     await db.query(articlesStringFormat)
-
-    // return db.query("SELECT * FROM articles;").then((topics) => { console.log(topics.rows) })
+        //Data Insertion - Comments
+    const articleInformation = await db.query("SELECT * FROM articles")
+    const articleRefTable = createRefTable(articleInformation.rows, "title", "article_id");
+    const preparedCommentData = replaceBelongsToWithArticleID(commentData, articleRefTable);
+    const commentsArray = formatComments(preparedCommentData);
+    const commentsStringFormat = format(`INSERT INTO comments
+            (author, article_id, votes, created_at, body)
+        VALUES
+            %L`, commentsArray)
+    await db.query(commentsStringFormat)
+    return db.query("SELECT * FROM comments;").then((topics) => { console.log(topics.rows) })
 };
 
 module.exports = seed;

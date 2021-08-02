@@ -1,4 +1,4 @@
-const { formatTopics, formatUsers, createArticlesReference, formatArticles } = require("../db/utils/data-manipulation.js");
+const { formatTopics, formatUsers, formatArticles, createRefTable, formatComments, replaceBelongsToWithArticleID } = require("../db/utils/data-manipulation.js");
 const db = require("../db/connection.js")
 
 describe("Utility functions db/utils/data-manip", () => {
@@ -306,6 +306,208 @@ describe("Utility functions db/utils/data-manip", () => {
             formatArticles(articles);
             articles.forEach((article, index) => {
                 expect(article).toEqual(newArticles[index])
+            })
+        })
+    })
+
+    describe('createRefTable()', () => {
+        test("throws an error if parameters are empty", () => {
+            const input = [{ name: "Edd" }]
+            expect(() => createRefTable(input)).toThrow(Error);
+        })
+        test('returns an empty object, when passed an empty array', () => {
+            const input = [];
+            const actual = createRefTable(input, "phone", "name");
+            const expected = {};
+            expect(actual).toEqual(expected);
+        });
+
+        test("createRefTable takes 2 additional string arguments that will set as the key-value pair for the reference book", () => {
+            const people = [{ name: "Edd", phoneNumber: "0123456789" }, { name: "Bill", phoneNumber: "07123456789" }];
+            expect(createRefTable(people, "name", "phoneNumber")).toEqual({ "Edd": "0123456789", "Bill": "07123456789" })
+            const songs = [{
+                    track: '11:11',
+                    article_id: 'Dinosaur Pile-Up',
+                    releaseYear: 2015,
+                    album: 'Eleven Eleven'
+                },
+                {
+                    track: 'Powder Blue',
+                    article_id: 'Elbow',
+                    releaseYear: 2001,
+                    album: 'Asleep In The Back'
+                }
+            ];
+            expect(createRefTable(songs, "track", "article_id")).toEqual({ "11:11": "Dinosaur Pile-Up", "Powder Blue": "Elbow" });
+        })
+
+        test("does not mutate original array", () => {
+            const people = [{ name: "Edd", phoneNumber: "0123456789" }, { name: "Bill", phoneNumber: "07123456789" }];
+            createRefTable(people, "phone", "name")
+            expect(people).toEqual([{ name: "Edd", phoneNumber: "0123456789" }, { name: "Bill", phoneNumber: "07123456789" }])
+        })
+
+        test("creates a new array", () => {
+            const people = [{ name: "Edd", phoneNumber: "0123456789" }, { name: "Bill", phoneNumber: "07123456789" }];
+            expect(createRefTable(people, "phone", "name")).not.toBe(people)
+        })
+
+        test("creates new objects of array", () => {
+            const people = [{ name: "Edd", phoneNumber: "0123456789" }, { name: "Bill", phoneNumber: "07123456789" }];
+            const newPeople = createRefTable(people, "phone", "name");
+            expect(newPeople[0]).not.toBe(people[0]);
+            expect(newPeople[1]).not.toBe(people[1]);
+        });
+
+        test("does not mutate original array objects", () => {
+            const people = [{ name: "Edd", phoneNumber: "0123456789" }, { name: "Bill", phoneNumber: "07123456789" }];
+            createRefTable(people, "phone", "name")
+            expect(people[0]).toEqual({ name: "Edd", phoneNumber: "0123456789" })
+            expect(people[1]).toEqual({ name: "Bill", phoneNumber: "07123456789" })
+        })
+
+    });
+
+    describe('replaceBelongsToWithArticleID()', () => {
+        test("replaces title with article_id", () => {
+            const refTable = { "bing": 1, "bong": 2 };
+            const comments = [{ belongs_to: "bing" }, { belongs_to: "bong" }];
+            expect(replaceBelongsToWithArticleID(comments, refTable)).toEqual([{ article_id: 1 }, { article_id: 2 }])
+        })
+
+        test("creates a new array", () => {
+            const refTable = { "bing": 1, "bong": 2 };
+            const comments = [{ belongs_to: "bing" }, { belongs_to: "bong" }];
+            expect(replaceBelongsToWithArticleID(comments, refTable)).not.toBe(comments)
+        })
+
+        test("creates new objects", () => {
+            const refTable = { "bing": 1, "bong": 2 };
+            const comments = [{ belongs_to: "bing" }, { belongs_to: "bong" }];
+            const newArticles = replaceBelongsToWithArticleID(comments, refTable);
+            newArticles.forEach((article, index) => {
+                expect(article).not.toBe(comments[index])
+            })
+        })
+
+        test("does not mutate original array", () => {
+            const refTable = { "bing": 1, "bong": 2 };
+            const comments = [{ belongs_to: "bing" }, { belongs_to: "bong" }];
+            replaceBelongsToWithArticleID(comments, refTable);
+            expect(comments).toEqual([{ belongs_to: "bing" }, { belongs_to: "bong" }])
+        })
+
+        test("does not mutate objects", () => {
+            const refTable = { "bing": 1, "bong": 2 };
+            const comments = [{ belongs_to: "bing" }, { belongs_to: "bong" }];
+            const newArticles = comments.map(article => { return {...article } })
+            replaceBelongsToWithArticleID(comments, refTable);
+            newArticles.forEach((article, index) => {
+                expect(article).toEqual(comments[index])
+            })
+        })
+    })
+
+    describe.only("formatComments()", () => {
+        test("creates an array of arrays with the data properly formatted", () => {
+            const comments = [{
+                    body: "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
+                    article_id: 1,
+                    created_by: 'butter_bridge',
+                    votes: 16,
+                    created_at: new Date(1586179020000)
+                },
+                {
+                    body: 'The beautiful thing about treasure is that it exists. Got to find out what kind of sheets these are; not cotton, not rayon, silky.',
+                    article_id: 2,
+                    created_by: 'butter_bridge',
+                    votes: 14,
+                    created_at: new Date(1604113380000)
+                },
+                {
+                    body: ' I carry a log — yes. Is it funny to you? It is not to me.',
+                    article_id: 3,
+                    created_by: 'icellusedkars',
+                    votes: -100,
+                    created_at: new Date(1582459260000)
+                },
+            ];
+            const newComments = formatComments(comments);
+            expect(newComments).toEqual([
+                ['butter_bridge', 1, 16, new Date(1586179020000), "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!"],
+                ["butter_bridge", 2, 14, new Date(1604113380000), 'The beautiful thing about treasure is that it exists. Got to find out what kind of sheets these are; not cotton, not rayon, silky.'],
+                ['icellusedkars', 3, -100, new Date(1582459260000), ' I carry a log — yes. Is it funny to you? It is not to me.', ]
+            ])
+        })
+
+        test("creates a new array", () => {
+            const comments = [];
+            const newComments = formatComments(comments);
+            expect(newComments).not.toBe(comments)
+        })
+
+        test("creates new objects", () => {
+            const comments = [{
+                    body: "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
+                    article_id: 1,
+                    created_by: 'butter_bridge',
+                    votes: 16,
+                    created_at: new Date(1586179020000)
+                },
+                {
+                    body: 'The beautiful thing about treasure is that it exists. Got to find out what kind of sheets these are; not cotton, not rayon, silky.',
+                    article_id: 2,
+                    created_by: 'butter_bridge',
+                    votes: 14,
+                    created_at: new Date(1604113380000)
+                },
+                {
+                    body: ' I carry a log — yes. Is it funny to you? It is not to me.',
+                    article_id: 3,
+                    created_by: 'icellusedkars',
+                    votes: -100,
+                    created_at: new Date(1582459260000)
+                },
+            ];
+            const newComments = formatComments(comments);
+            newComments.forEach((comment, index) => {
+                expect(comment).not.toBe(comments[index])
+            })
+        })
+
+        test("does not mutate original array", () => {
+            const comments = [];
+            formatComments(comments)
+            expect(comments).toEqual([])
+        })
+
+        test("does not mutate objects in original array", () => {
+            const comments = [{
+                    body: "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
+                    article_id: 1,
+                    created_by: 'butter_bridge',
+                    votes: 16,
+                    created_at: new Date(1586179020000)
+                },
+                {
+                    body: 'The beautiful thing about treasure is that it exists. Got to find out what kind of sheets these are; not cotton, not rayon, silky.',
+                    article_id: 2,
+                    created_by: 'butter_bridge',
+                    votes: 14,
+                    created_at: new Date(1604113380000)
+                },
+                {
+                    body: ' I carry a log — yes. Is it funny to you? It is not to me.',
+                    article_id: 3,
+                    created_by: 'icellusedkars',
+                    votes: -100,
+                    created_at: new Date(1582459260000)
+                },
+            ];
+            const newComments = comments.map(comment => { return {...comment } })
+            formatComments(comments);
+            newComments.forEach((comment, index) => {
+                expect(comment).toEqual(comments[index])
             })
         })
     })
