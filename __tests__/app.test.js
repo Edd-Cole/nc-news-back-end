@@ -43,4 +43,12 @@ describe("/api", () => {
             })
         })
     })
+
+    describe("/users", () => {
+        describe("/ - GET", () => {
+            test("status 200 - returns all the users", () => {
+
+            })
+        })
+    })
 })
