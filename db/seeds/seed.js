@@ -1,13 +1,15 @@
 const db = require("../connection.js")
+const format = require("pg-format")
+const { formatTopics } = require("../utils/data-manipulation.js")
 
 const seed = async(data) => {
     const { articleData, commentData, topicData, userData } = data;
-    // 1. create tables
+    //Dropping Tables
     await db.query("DROP TABLE IF EXISTS comments CASCADE;");
     await db.query("DROP TABLE IF EXISTS articles CASCADE;");
     await db.query("DROP TABLE IF EXISTS users CASCADE;");
     await db.query("DROP TABLE IF EXISTS topics CASCADE;");
-
+    //Table Creation
     await db.query(`CREATE TABLE topics (
         slug VARCHAR(63) PRIMARY KEY NOT NULL,
         description TEXT
@@ -36,7 +38,25 @@ const seed = async(data) => {
             created_on DATE DEFAULT CURRENT_DATE,
             body TEXT NOT NULL
         )`)
-        // 2. insert data
+
+    //Data Insertion
+    const topicsArray = formatTopics(topicData);
+    const topicsStringFormat = format(`INSERT INTO topics
+            (slug, description)
+        VALUES
+            %L`, topicsArray)
+    await db.query(topicsStringFormat)
+
+
+    //Need to create users Array from data!!!!!!
+    const usersArray = formatUsers(userData)
+    const usersStringFormat = format(`INSERT INTO users 
+            (username, avatar_url, name)
+        VALUES
+            %L`, usersArray)
+    await db.query(usersStringFormat)
+
+    // return db.query("SELECT * FROM topics;").then((topics) => { console.log(topics.rows) })
 };
 
 module.exports = seed;
