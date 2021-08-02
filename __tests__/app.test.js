@@ -47,7 +47,18 @@ describe("/api", () => {
     describe("/users", () => {
         describe("/ - GET", () => {
             test("status 200 - returns all the users", () => {
-
+                return request(app).get("/api/users").expect(200)
+                    .then(response => {
+                        response.body.users.forEach(user => {
+                            expect(user).toMatchObject({
+                                username: expect.any(String),
+                                avatar_url: expect.any(String),
+                            })
+                            expect(user).not.toMatchObject({
+                                name: expect.any(String),
+                            })
+                        })
+                    })
             })
         })
     })
