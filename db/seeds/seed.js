@@ -4,12 +4,12 @@ const { formatTopics, formatUsers, formatArticles, formatComments } = require(".
 
 const seed = async(data) => {
     const { articleData, commentData, topicData, userData } = data;
-    //Dropping Tables
+    //Dropping Tables - comments, articles, users & topics, respectively
     await db.query("DROP TABLE IF EXISTS comments CASCADE;");
     await db.query("DROP TABLE IF EXISTS articles CASCADE;");
     await db.query("DROP TABLE IF EXISTS users CASCADE;");
     await db.query("DROP TABLE IF EXISTS topics CASCADE;");
-    //Table Creation
+    //Table Creation - topics, users, articles & comments, respectively
     await db.query(`CREATE TABLE topics (
         slug VARCHAR(63) PRIMARY KEY NOT NULL,
         description TEXT
@@ -36,24 +36,21 @@ const seed = async(data) => {
                 created_at DATE DEFAULT CURRENT_DATE,
                 body TEXT NOT NULL
             )`)
-        //Data Insertion
+        //Data Insertion - Data
     const topicsArray = formatTopics(topicData);
     const topicsStringFormat = format(`INSERT INTO topics
                 (slug, description)
             VALUES
                 %L`, topicsArray)
     await db.query(topicsStringFormat)
-
+        //Data Insertion - Users
     const usersArray = formatUsers(userData)
     const usersStringFormat = format(`INSERT INTO users 
             (username, avatar_url, name)
         VALUES
             %L`, usersArray)
     await db.query(usersStringFormat)
-
-    // create references
-    // for articles
-    // for proper formatting
+        //Data Insertion - Articles
     const articlesArray = formatArticles(articleData)
     const articlesStringFormat = format(`INSERT INTO articles
             (title, body, votes,topic, author, created_at)
