@@ -408,7 +408,7 @@ describe("Utility functions db/utils/data-manip", () => {
         })
     })
 
-    describe.only("formatComments()", () => {
+    describe("formatComments()", () => {
         test("creates an array of arrays with the data properly formatted", () => {
             const comments = [{
                     body: "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",

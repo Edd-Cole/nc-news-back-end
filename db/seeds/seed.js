@@ -67,7 +67,6 @@ const seed = async(data) => {
         VALUES
             %L`, commentsArray)
     await db.query(commentsStringFormat)
-    return db.query("SELECT * FROM comments;").then((topics) => { console.log(topics.rows) })
 };
 
 module.exports = seed;
