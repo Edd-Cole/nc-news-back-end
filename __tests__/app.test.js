@@ -64,7 +64,7 @@ describe("/api", () => {
 
     describe("/articles", () => {
         describe("/ - GET", () => {
-            test("status 200 - returns all the articles", () => {
+            test.only("status 200 - returns all the articles", () => {
                 return request(app).get("/api/articles").expect(200)
                     .then(response => {
                         response.body.articles.forEach(article => {
@@ -75,6 +75,8 @@ describe("/api", () => {
                                 votes: expect.any(Number),
                                 topic: expect.any(String),
                                 author: expect.any(String),
+                                created_at: expect.anything(),
+                                comment_count: expect.any(String)
                             })
                         })
                     })
