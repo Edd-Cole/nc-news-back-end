@@ -15,9 +15,15 @@ const selectArticleByID = (article_id) => {
 }
 
 const updateArticleByID = (article_id, articleInfo) => {
-    let { title, body, votes, topic, author } = articleInfo;
-
+    //SQL Injection Sanitisation - remove single quotes, or double them up
+    article_id = article_id.replace(/\'/g, "")
+    for (item in articleInfo) {
+        if (item !== "votes") {
+            articleInfo[item] = articleInfo[item].replace(/\'/g, '')
+        }
+    }
     //Checks that if only invalid values are used, then we get the article
+    let { title, body, votes, topic, author } = articleInfo;
     const articleInfoValues = Object.values({ title, body, votes, topic, author })
     if (articleInfoValues.every(info => info === undefined)) {
         return db.query("SELECT * FROM articles WHERE article_id = $1", [article_id])

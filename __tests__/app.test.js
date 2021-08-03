@@ -103,7 +103,7 @@ describe("/api", () => {
                 })
             })
 
-            describe.only("/ - PATCH", () => {
+            describe("/ - PATCH", () => {
                 describe("status 200 - Success", () => {
                     test("updates only one part of an article", () => {
                         return request(app).patch("/api/articles/1").send({ title: "Bing" }).expect(200)
@@ -198,15 +198,26 @@ describe("/api", () => {
                             })
                     })
 
-                    test("is not vulnerable to SQL Injection #1", () => {
+                    test("safe to SQL Injection #1", () => {
                         return request(app).patch("/api/articles/1; DROP TABLE articles;").send({ body: "something; DROP TABLE articles" }).expect(400)
                             .then(response => {
                                 expect(response.body.msg).toBe("invalid type for key")
                             })
                     })
 
-                    test("is not vulnerable to SQL Injection #2", () => {
-                        return request(app).patch("/api/articles/1; 'DROP TABLE articles;'").send({ body: "something; 'DROP TABLE articles'" }).expect(400)
+                    test("safe to SQL Injection #2", () => {
+                        return request(app).patch("/api/articles/1; 'DROP TABLE articles;'")
+                            .send({ body: "something;  'DROP TABLE articles'" })
+                            .expect(400)
+                            .then(response => {
+                                expect(response.body.msg).toBe("invalid type for key")
+                            })
+                    })
+
+                    test("safe to SQL Injection #3", () => {
+                        return request(app).patch("/api/articles/1; ''DROP TABLE articles;''")
+                            .send({ body: "something; ''DROP TABLE articles''", votes: '19; DROP TABLE articles' })
+                            .expect(400)
                             .then(response => {
                                 expect(response.body.msg).toBe("invalid type for key")
                             })
@@ -269,7 +280,7 @@ describe("/api", () => {
                     })
                 })
 
-                describe.only("/ - POST", () => {
+                describe("/ - POST", () => {
                     describe("status 200 - Success", () => {
                         test("Adds a new comment to database and returns comment, all fields complete", () => {
                             return request(app).post("/api/articles/1/comments")
