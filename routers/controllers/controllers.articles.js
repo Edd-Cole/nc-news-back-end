@@ -27,7 +27,20 @@ const patchArticleByID = (request, response, next) => {
     const articleInfo = request.body;
     updateArticleByID(article_id, articleInfo)
         .then(articles => {
+            if (articles.code) {
+                return next(articles)
+            }
             response.status(200).send({ articles })
+        })
+        .catch(error => {
+            if (error.code === "23503") {
+                next({ code: 400, msg: "cannot create an original value for topic and/or author" })
+            } else if (error.code === "22001") {
+                next({ code: 400, msg: "at least one value exceeds character limit" })
+            } else {
+                console.log(error)
+                next()
+            }
         })
 }
 

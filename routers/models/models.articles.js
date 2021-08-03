@@ -15,8 +15,17 @@ const selectArticleByID = (article_id) => {
 }
 
 const updateArticleByID = (article_id, articleInfo) => {
-    //Create the SQL SET statement using the information from PATCH
     let { title, body, votes, topic, author } = articleInfo;
+
+    //Checks that if only invalid values are used, then we get the article
+    const articleInfoValues = Object.values({ title, body, votes, topic, author })
+    if (articleInfoValues.every(info => info === undefined)) {
+        return db.query("SELECT * FROM articles WHERE article_id = $1", [article_id])
+            .then(response => {
+                return response.rows;
+            })
+    }
+    //Create the SQL SET statement using the information from PATCH
     title = title ? `title = '${title}',` : "";
     body = body ? `body = '${body}',` : "";
     votes = votes ? `votes = '${votes}',` : "";
@@ -29,6 +38,9 @@ const updateArticleByID = (article_id, articleInfo) => {
      WHERE article_id = '${article_id}'
      RETURNING *;`)
         .then(response => {
+            if (response.rows.length === 0) {
+                return { code: 400, msg: "article_id does not exist" }
+            }
             return response.rows;
         })
 }
