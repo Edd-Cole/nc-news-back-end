@@ -39,7 +39,7 @@ const updateArticleByID = (article_id, articleInfo) => {
      RETURNING *;`)
         .then(response => {
             if (response.rows.length === 0) {
-                return { code: 400, msg: "article_id does not exist" }
+                return { code: 404, msg: "article does not exist" }
             }
             return response.rows;
         })

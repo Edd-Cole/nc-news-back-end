@@ -27,16 +27,20 @@ const patchArticleByID = (request, response, next) => {
     const articleInfo = request.body;
     updateArticleByID(article_id, articleInfo)
         .then(articles => {
+            //Handles edge cases where errors would pass tests
             if (articles.code) {
                 return next(articles)
             }
             response.status(200).send({ articles })
         })
         .catch(error => {
+            //Handles errors
             if (error.code === "23503") {
                 next({ code: 400, msg: "cannot create an original value for topic and/or author" })
             } else if (error.code === "22001") {
                 next({ code: 400, msg: "at least one value exceeds character limit" })
+            } else if (error.code === "22P02") {
+                next({ code: 400, msg: "invalid type for key" })
             } else {
                 console.log(error)
                 next()
