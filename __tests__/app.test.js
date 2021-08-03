@@ -2,12 +2,27 @@ const db = require('../db/connection.js');
 const request = require("supertest")
 const app = require("../routers/app.js")
 const testData = require('../db/data/test-data/index.js');
+const fs = require("fs/promises")
 const seed = require('../db/seeds/seed.js');
 
 beforeEach(() => seed(testData));
 afterAll(() => db.end());
 
 describe("/api", () => {
+    describe("/ - GET", () => {
+        describe("status 200 - Success", () => {
+            test("returns all available endpoints one can use", () => {
+                return request(app).get("/api/").expect(200)
+                    .then(async(response) => {
+                        let endpoints = await fs.readFile(`${__dirname}/../routers/endpoints.json`, "utf8")
+                        endpoints = JSON.parse(endpoints)
+                        expect(typeof(response.body.endpoints)).toBe("object")
+                        expect(response.body.endpoints).toEqual(endpoints)
+                    })
+            })
+        })
+    })
+
     describe("/topics", () => {
         describe("/ - GET", () => {
             describe("status 200 - Success", () => {
@@ -416,18 +431,5 @@ describe("/api", () => {
                 })
             })
         })
-    })
-
-    describe("/ - GET", () => {
-            //200 - get list of all endpoints
-            //400 - safe against SQL Injection
-            describe("status 200 - Success", () => {
-                    test("returns all available endpoints one can use", () => {
-                            return request(app).get("/api/").expect(200)
-                                .then(response => {
-                                        expect(typeof(response.body.endpoints.length)).toBe("object"))
-                                })
-                    })
-            })
     })
 })
