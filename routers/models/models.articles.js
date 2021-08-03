@@ -19,7 +19,7 @@ const updateArticleByID = (article_id, articleInfo) => {
     article_id = article_id.replace(/\'/g, "")
     for (item in articleInfo) {
         if (item !== "votes") {
-            articleInfo[item] = articleInfo[item].replace(/\'/g, '')
+            articleInfo[item] = articleInfo[item].replace(/\'/g, '\'\'')
         }
     }
     //Checks that if only invalid values are used, then we get the article
