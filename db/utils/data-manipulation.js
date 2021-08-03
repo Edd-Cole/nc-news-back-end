@@ -22,8 +22,6 @@ const createRefTable = (reference, key, value) => {
     if (value === undefined) {
         throw new Error("createRefTable() needs an array of objects, and 2 keys for parameters, respectively")
     }
-    key = key;
-    value = value;
     const referenceKey = {}
     reference.forEach(item => referenceKey[item[key]] = item[value])
     return referenceKey;
