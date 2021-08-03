@@ -45,4 +45,16 @@ const updateArticleByID = (article_id, articleInfo) => {
         })
 }
 
-module.exports = { selectArticles, selectArticleByID, updateArticleByID };
+const selectCommentsByArticleID = (article_id) => {
+    return db.query(`
+    SELECT comment_id, articles.title, comments.author, articles.article_id, comments.votes, comments.body
+    FROM articles
+    JOIN comments
+    ON articles.article_id = comments.article_id
+    WHERE articles.article_id = $1`, [article_id])
+        .then(response => {
+            return response.rows;
+        })
+}
+
+module.exports = { selectArticles, selectArticleByID, updateArticleByID, selectCommentsByArticleID };

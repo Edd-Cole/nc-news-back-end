@@ -1,4 +1,4 @@
-const { selectArticles, selectArticleByID, updateArticleByID } = require("../models/models.articles.js");
+const { selectArticles, selectArticleByID, updateArticleByID, selectCommentsByArticleID } = require("../models/models.articles.js");
 
 const getArticles = (request, response) => {
     selectArticles()
@@ -23,6 +23,7 @@ const getArticleByID = (request, response, next) => {
 }
 
 const patchArticleByID = (request, response, next) => {
+    console.log(request.params)
     const { article_id } = request.params;
     const articleInfo = request.body;
     updateArticleByID(article_id, articleInfo)
@@ -48,4 +49,26 @@ const patchArticleByID = (request, response, next) => {
         })
 }
 
-module.exports = { getArticles, getArticleByID, patchArticleByID };
+const getCommentsByArticleID = (request, response, next) => {
+    const { article_id } = request.params
+    selectCommentsByArticleID(article_id)
+        .then(comments => {
+            //Implicit error handling - code does not throw errors
+            if (comments.length === 0) {
+                return next({ code: 404, msg: "article does not exist" })
+            } else {
+                response.status(200).send({ comments })
+            }
+        })
+        .catch(error => {
+            //Explicit error handling - code does throw erros
+            if (error.code = "22P02") {
+                next({ code: 400, msg: "invalid type for article_id" })
+            } else {
+                console.log(error)
+                next();
+            }
+        })
+}
+
+module.exports = { getArticles, getArticleByID, patchArticleByID, getCommentsByArticleID };
