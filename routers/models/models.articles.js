@@ -57,4 +57,14 @@ const selectCommentsByArticleID = (article_id) => {
         })
 }
 
-module.exports = { selectArticles, selectArticleByID, updateArticleByID, selectCommentsByArticleID };
+const addCommentByArticleID = (article_id) => {
+
+}
+
+module.exports = {
+    selectArticles,
+    selectArticleByID,
+    updateArticleByID,
+    selectCommentsByArticleID,
+    addCommentByArticleID
+};

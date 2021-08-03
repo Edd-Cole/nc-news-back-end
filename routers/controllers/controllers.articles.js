@@ -1,4 +1,4 @@
-const { selectArticles, selectArticleByID, updateArticleByID, selectCommentsByArticleID } = require("../models/models.articles.js");
+const { selectArticles, selectArticleByID, updateArticleByID, selectCommentsByArticleID, addCommentByArticleID } = require("../models/models.articles.js");
 
 const getArticles = (request, response) => {
     selectArticles()
@@ -71,4 +71,18 @@ const getCommentsByArticleID = (request, response, next) => {
         })
 }
 
-module.exports = { getArticles, getArticleByID, patchArticleByID, getCommentsByArticleID };
+const postCommentByArticleID = (request, response, next) => {
+    const { article_id } = request.params
+    addCommentByArticleID(article_id)
+        .then(comments => {
+            next();
+        })
+}
+
+module.exports = {
+    getArticles,
+    getArticleByID,
+    patchArticleByID,
+    getCommentsByArticleID,
+    postCommentByArticleID
+};
