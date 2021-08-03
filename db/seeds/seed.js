@@ -24,16 +24,18 @@ const seed = async(data) => {
                 title VARCHAR(127) NOT NULL,
                 body TEXT,
                 votes INT NOT NULL DEFAULT 0,
-                topic TEXT REFERENCES topics (slug) NOT NULL,
+                topic VARCHAR(63) REFERENCES topics (slug) NOT NULL,
                 author VARCHAR(40) REFERENCES users (username) NOT NULL,
-                created_at DATE NOT NULL
+                created_at DATE NOT NULL,
+                created_on TIME
             )`)
     await db.query(`CREATE TABLE comments (
                 comment_id SERIAL PRIMARY KEY NOT NULL,
                 author VARCHAR(40) REFERENCES users (username) NOT NULL,
                 article_id INT REFERENCES articles (article_id) NOT NULL,
-                votes INT DEFAULT 0,
-                created_at DATE DEFAULT CURRENT_DATE,
+                votes INT DEFAULT 0 NOT NULL,
+                created_at DATE DEFAULT CURRENT_DATE NOT NULL,
+                created_on TIME DEFAULT CURRENT_TIME,
                 body TEXT NOT NULL
             )`)
         //Data Insertion - Data
