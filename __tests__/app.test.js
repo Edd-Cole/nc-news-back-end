@@ -417,4 +417,17 @@ describe("/api", () => {
             })
         })
     })
+
+    describe("/ - GET", () => {
+            //200 - get list of all endpoints
+            //400 - safe against SQL Injection
+            describe("status 200 - Success", () => {
+                    test("returns all available endpoints one can use", () => {
+                            return request(app).get("/api/").expect(200)
+                                .then(response => {
+                                        expect(typeof(response.body.endpoints.length)).toBe("object"))
+                                })
+                    })
+            })
+    })
 })
