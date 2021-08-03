@@ -63,8 +63,17 @@ const selectCommentsByArticleID = (article_id) => {
         })
 }
 
-const addCommentByArticleID = (article_id) => {
-
+const addCommentByArticleID = (article_id, commentInfo) => {
+    const { author, body } = commentInfo;
+    return db.query(`
+    INSERT INTO comments
+        (author, article_id, body)
+    VALUES
+        ($1, $2, $3)
+        RETURNING *;`, [author, article_id, body])
+        .then(comments => {
+            return comments.rows[0]
+        })
 }
 
 module.exports = {

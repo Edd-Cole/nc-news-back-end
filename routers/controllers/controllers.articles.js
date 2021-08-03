@@ -42,7 +42,6 @@ const patchArticleByID = (request, response, next) => {
             } else if (error.code === "22P02") {
                 next({ code: 400, msg: "invalid type for key" })
             } else {
-                // console.log(error)
                 next()
             }
         })
@@ -71,10 +70,23 @@ const getCommentsByArticleID = (request, response, next) => {
 }
 
 const postCommentByArticleID = (request, response, next) => {
+    const commentInfo = request.body;
     const { article_id } = request.params
-    addCommentByArticleID(article_id)
+    addCommentByArticleID(article_id, commentInfo)
         .then(comments => {
-            next();
+            response.status(201).send({ comments });
+        })
+        .catch(error => {
+            if (error.code === "23502") {
+                next({ code: 400, msg: "author and body must be specified" })
+            } else if (error.code === "23503") {
+                next({ code: 400, msg: "author must reference a username, article_id must exist and body must be of type String" })
+            } else if (error.code === "22P02") {
+                next({ code: 400, msg: "article_id must be a number" })
+            } else {
+                console.log(error)
+                next(error)
+            }
         })
 }
 
