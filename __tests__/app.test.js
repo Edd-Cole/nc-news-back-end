@@ -40,6 +40,57 @@ describe("/api", () => {
                 })
             })
         })
+
+        describe.only("/ - POST", () => {
+            describe("status 201 - Created", () => {
+                test("returns created topic", () => {
+                    return request(app).post("/api/topics")
+                        .send({ slug: "dogs", description: "better than cats" })
+                        .expect(201)
+                        .then(response => {
+                            expect(response.body.topics).toEqual({
+                                slug: "dogs",
+                                description: "better than cats"
+                            })
+                        })
+                })
+
+                test("safe against SQL Injection", () => {
+                    return request(app).post("/api/topics")
+                        .send({
+                            slug: "DROP TABLE articles",
+                            description: "DROP TABLE articles"
+                        })
+                        .expect(201)
+                        .then(response => {
+                            expect(response.body.topics).not.toBe(undefined)
+                        })
+                })
+            })
+
+            describe("status 400 - Bad Request", () => {
+                test("slug already exists", () => {
+                    return request(app).post("/api/topics").send({ slug: "cats", description: "no" })
+                        .expect(400)
+                        .then(response => {
+                            expect(response.body.msg).toBe("slug already exists")
+                        })
+                })
+
+                test("insufficient info", async() => {
+                    await request(app).post("/api/topics").send({ description: "me" })
+                        .expect(400)
+                        .then(response => {
+                            expect(response.body.msg).toBe("slug and description must be defined")
+                        })
+                    await request(app).post("/api/topics").send({ slug: "Boom" })
+                        .expect(400)
+                        .then(response => {
+                            expect(response.body.msg).toBe("slug and description must be defined")
+                        })
+                })
+            })
+        })
     })
 
     describe("/users", () => {

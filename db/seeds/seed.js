@@ -12,7 +12,7 @@ const seed = async(data) => {
     //Table Creation - topics, users, articles & comments, respectively
     await db.query(`CREATE TABLE topics (
         slug VARCHAR(63) PRIMARY KEY NOT NULL,
-        description TEXT
+        description TEXT NOT NULL
     );`);
     await db.query(`CREATE TABLE users (
         username VARCHAR(40)PRIMARY KEY NOT NULL,

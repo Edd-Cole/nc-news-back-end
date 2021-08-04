@@ -7,4 +7,17 @@ const selectTopics = () => {
         })
 }
 
-module.exports = { selectTopics }
+const addTopic = ({ slug, description }) => {
+    return db.query(`
+    INSERT INTO topics
+        (slug, description)
+    VALUES
+        ($1, $2)
+    RETURNING *;
+    `, [slug, description])
+        .then(topics => {
+            return topics.rows[0]
+        })
+}
+
+module.exports = { selectTopics, addTopic }

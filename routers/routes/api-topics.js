@@ -1,6 +1,8 @@
 const apiTopics = require("express").Router();
-const { getTopics } = require("../controllers/controllers.topics.js")
+const { getTopics, postTopic } = require("../controllers/controllers.topics.js")
 
-apiTopics.get("/", getTopics)
+apiTopics.route("/")
+    .get(getTopics)
+    .post(postTopic)
 
 module.exports = apiTopics;
