@@ -26,8 +26,8 @@ const seed = async(data) => {
                 votes INT NOT NULL DEFAULT 0,
                 topic VARCHAR(63) REFERENCES topics (slug) NOT NULL,
                 author VARCHAR(40) REFERENCES users (username) NOT NULL,
-                created_at DATE NOT NULL,
-                created_on TIME
+                created_at DATE DEFAULT CURRENT_DATE,
+                created_on TIME DEFAULT CURRENT_TIME
             )`)
     await db.query(`CREATE TABLE comments (
                 comment_id SERIAL PRIMARY KEY NOT NULL,

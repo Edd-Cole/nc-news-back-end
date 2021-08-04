@@ -1,4 +1,5 @@
 const db = require("../../db/connection.js");
+// const format = require("pg-format")
 
 const selectArticles = ({ sortBy, orderBy, topic, limit, page }) => {
     //SQL Injection cleansing
@@ -110,10 +111,24 @@ const addCommentByArticleID = (article_id, commentInfo) => {
         })
 }
 
+const addArticle = ({ title, body, topic, author }) => {
+    return db.query(`
+    INSERT INTO articles
+        (title, body, votes, topic, author)
+    VALUES
+        ($1, $2, 0, $3, $4)
+    RETURNING *;
+    `, [title, body, topic, author])
+        .then(articles => {
+            return articles.rows;
+        })
+}
+
 module.exports = {
     selectArticles,
     selectArticleByID,
     updateArticleByID,
     selectCommentsByArticleID,
-    addCommentByArticleID
+    addCommentByArticleID,
+    addArticle
 };

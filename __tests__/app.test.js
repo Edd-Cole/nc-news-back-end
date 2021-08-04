@@ -63,7 +63,7 @@ describe("/api", () => {
         })
 
         describe("/:username", () => {
-            describe.only("/ - GET", () => {
+            describe("/ - GET", () => {
                 describe("status 200 - Success", () => {
                     test("grabs a user by their username", () => {
                         return request(app).get("/api/users/lurker").expect(200)
@@ -274,6 +274,61 @@ describe("/api", () => {
                     await request(app).get("/api/articles?page='DROP TABLE articles'").expect(400)
                         .then(response => expect(response.body.msg).toBe("Invalid query"))
                     await db.query("SELECT * FROM articles").then(articles => expect(articles.rows).not.toBe(0))
+                })
+            })
+        })
+
+        describe("/ - POST", () => {
+            describe("status 201 - Created", () => {
+                test("returns the newly created article and article is in database", async() => {
+                    await request(app).post("/api/articles")
+                        .send({
+                            title: "Who ate all the cats?",
+                            body: "I am going to create a new song to rival 'Who let the dogs out!'",
+                            topic: "cats",
+                            author: "lurker"
+                        })
+                        .expect(201)
+                        .then(response => {
+                            expect(response.body.articles[0]).toMatchObject({
+                                article_id: expect.any(Number),
+                                title: "Who ate all the cats?",
+                                body: "I am going to create a new song to rival 'Who let the dogs out!'",
+                                topic: "cats",
+                                author: "lurker",
+                                votes: 0,
+                                created_at: expect.anything(),
+                                created_on: expect.anything()
+                            })
+                        })
+                    await db.query("SELECT * FROM articles ORDER BY article_id DESC LIMIT 1;")
+                        .then(response => expect(response.rows[0].title).toBe("Who ate all the cats?"))
+                })
+
+                test("safe against SQL Injection", () => {
+                    return request(app).post("/api/articles")
+                        .send({ title: 'DROP TABLE articles', author: "lurker", topic: "cats", body: 'DROP TABLE articles' })
+                        .then(response => {
+                            expect(response.body.articles).not.toBe(undefined)
+                        })
+                })
+            })
+
+            describe("status 400 - Bad Request", () => {
+                test("returns an error if required info is missing", () => {
+                    return request(app).post("/api/articles")
+                        .send({ title: "Bingo!", body: "Some missing info soon", topic: "cats" })
+                        .expect(400)
+                        .then(response => {
+                            expect(response.body.msg).toBe("ensure object is {title: String, body: String, author: String, topic: String}")
+                        })
+                })
+
+                test("returns an error if incorrect info is passed for foreign keys", () => {
+                    return request(app).post("/api/articles")
+                        .send({ title: "Bingo", body: "Bongo", author: "lurker", topic: "Bingo" })
+                        .expect(400)
+                        .then(response => expect(response.body.msg).toBe("author and topic must exist"))
                 })
             })
         })
@@ -540,7 +595,7 @@ describe("/api", () => {
                 })
 
                 describe("/ - POST", () => {
-                    describe("status 200 - Success", () => {
+                    describe("status 201 - Created", () => {
                         test("Adds a new comment to database and returns comment, all fields complete", () => {
                             return request(app).post("/api/articles/1/comments")
                                 .send({ author: "lurker", body: "I've invented a new O(n) sorting algorithm!" })

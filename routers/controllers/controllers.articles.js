@@ -1,4 +1,4 @@
-const { selectArticles, selectArticleByID, updateArticleByID, selectCommentsByArticleID, addCommentByArticleID } = require("../models/models.articles.js");
+const { selectArticles, selectArticleByID, updateArticleByID, selectCommentsByArticleID, addCommentByArticleID, addArticle } = require("../models/models.articles.js");
 
 const getArticles = (request, response, next) => {
     const queries = request.query
@@ -104,10 +104,28 @@ const postCommentByArticleID = (request, response, next) => {
         })
 }
 
+const postArticle = (request, response, next) => {
+    const body = request.body;
+    addArticle(body)
+        .then(articles => {
+            response.status(201).send({ articles })
+        })
+        .catch(error => {
+            if (error.code === "23502") {
+                next({ code: 400, msg: "ensure object is {title: String, body: String, author: String, topic: String}" })
+            } else if (error.code === "23503") {
+                next({ code: 400, msg: "author and topic must exist" })
+            } else {
+                next(error)
+            }
+        })
+}
+
 module.exports = {
     getArticles,
     getArticleByID,
     patchArticleByID,
     getCommentsByArticleID,
-    postCommentByArticleID
+    postCommentByArticleID,
+    postArticle
 };
