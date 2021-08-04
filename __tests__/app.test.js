@@ -435,7 +435,7 @@ describe("/api", () => {
             })
 
             describe("/comments", () => {
-                describe.only("/ - GET", () => {
+                describe("/ - GET", () => {
                     describe("status 200 - Success", () => {
                         test("return comments associated with an article", () => {
                             return request(app).get("/api/articles/1/comments").expect(200)
@@ -675,6 +675,18 @@ describe("/api", () => {
                     await request(app).get("/api/comments?page='DROP TABLE comments'").expect(400)
                         .then(response => { expect(response.body.msg).toBe("invalid query") })
 
+                })
+            })
+        })
+
+        describe.only("/:comment_id", () => {
+            describe("/ - DELETE", () => {
+                describe("status 204 - Success: No Content", () => {
+                    test("deletes a comment", async() => {
+                        await request(app).delete("/api/comments/1").expect(204)
+                        await db.query("SELECT * FROM comments WHERE comment_id = 1")
+                            .then(response => expect(response.rows).toHaveLength(0))
+                    })
                 })
             })
         })

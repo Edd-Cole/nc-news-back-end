@@ -1,6 +1,7 @@
 const apiComments = require("express").Router();
-const { getComments } = require("../controllers/controllers.comments.js");
+const { getComments, deleteComment } = require("../controllers/controllers.comments.js");
 
-apiComments.get("/", getComments);
+apiComments.route("/").get(getComments);
+apiComments.route("/:comment_id").delete(deleteComment)
 
 module.exports = apiComments;

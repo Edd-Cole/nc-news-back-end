@@ -1,4 +1,4 @@
-const { selectComments } = require("../models/models.comments.js");
+const { selectComments, removeComment } = require("../models/models.comments.js");
 
 const getComments = (request, response, next) => {
     const commentsInfo = request.query;
@@ -15,4 +15,15 @@ const getComments = (request, response, next) => {
         })
 }
 
-module.exports = { getComments };
+const deleteComment = (request, response, next) => {
+    const { comment_id } = request.params;
+    removeComment(comment_id)
+        .then(() => {
+            response.sendStatus(204)
+        })
+        .catch(error => {
+            next(error)
+        })
+}
+
+module.exports = { getComments, deleteComment };

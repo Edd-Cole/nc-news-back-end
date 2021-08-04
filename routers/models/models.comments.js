@@ -11,4 +11,9 @@ const selectComments = ({ limit = 20, page = 1 }) => {
         })
 }
 
-module.exports = { selectComments };
+const removeComment = (comment_id) => {
+    return db.query("DELETE FROM comments WHERE comment_id = $1", [comment_id])
+        .then(() => { return })
+}
+
+module.exports = { selectComments, removeComment };
