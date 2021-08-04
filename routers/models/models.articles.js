@@ -8,39 +8,54 @@ const selectArticles = () => {
     ON articles.article_id = comments.article_id
     GROUP BY articles.article_id`)
         .then(articles => {
-            console.log(articles.rows)
             return articles.rows;
         })
 }
 
 const selectArticleByID = (article_id) => {
-    return db.query("SELECT * FROM articles WHERE article_id = $1", [article_id])
+    return db.query(`
+    SELECT articles.article_id, articles.title, articles.body, articles.votes, articles.topic, articles.author, articles.created_at, COUNT(comments.comment_id) AS comment_count
+    FROM articles
+    JOIN comments
+    ON articles.article_id = comments.article_id
+    WHERE articles.article_id = $1
+    GROUP BY articles.article_id
+    `, [article_id])
         .then(response => {
             return response.rows;
         })
 }
 
-const updateArticleByID = (article_id, articleInfo) => {
+const updateArticleByID = async(article_id, articleInfo) => {
     //SQL Injection Sanitisation - remove single quotes, or double them up
     article_id = article_id.replace(/\'/g, "")
     for (item in articleInfo) {
-        if (item !== "votes") {
+        if (item !== "votes" && item !== "inc_votes") {
             articleInfo[item] = articleInfo[item].replace(/\'/g, '\'\'')
         }
     }
     //Checks that if only invalid values are used, then we get the article
-    let { title, body, votes, topic, author } = articleInfo;
-    const articleInfoValues = Object.values({ title, body, votes, topic, author })
+    let { title, body, votes, topic, author, inc_votes = 0 } = articleInfo;
+    const articleInfoValues = Object.values({ title, body, votes, topic, author, inc_votes })
     if (articleInfoValues.every(info => info === undefined)) {
         return db.query("SELECT * FROM articles WHERE article_id = $1", [article_id])
             .then(response => {
                 return response.rows;
             })
     }
+    //Grab the value of votes for this article, and then pass that to the update below so we
+    //can manipulate the information with inc_votes, as needed
+    const votesValue = await db.query("SELECT votes FROM articles WHERE article_id = $1", [article_id])
+        .then(votes => {
+            if (votes.rows.length === 0) {
+                return Promise.reject({ code: 404, msg: "article does not exist" })
+            }
+            return votes.rows[0].votes
+        });
     //Create the SQL SET statement using the information from PATCH
     title = title ? `title = '${title}',` : "";
     body = body ? `body = '${body}',` : "";
-    votes = votes ? `votes = '${votes}',` : "";
+    votes = votes ? `votes = '${votes + inc_votes}',` : `votes = '${votesValue + inc_votes}',`;
     topic = topic ? `topic = '${topic}',` : "";
     author = author ? `author = '${author}',` : "";
     let updateString = `${title}${body}${votes}${topic}${author}`.slice(0, -1);

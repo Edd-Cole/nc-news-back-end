@@ -64,7 +64,7 @@ describe("/api", () => {
 
     describe("/articles", () => {
         describe("/ - GET", () => {
-            test.only("status 200 - returns all the articles", () => {
+            test("status 200 - returns all the articles", () => {
                 return request(app).get("/api/articles").expect(200)
                     .then(response => {
                         response.body.articles.forEach(article => {
@@ -96,6 +96,8 @@ describe("/api", () => {
                                     votes: expect.any(Number),
                                     topic: expect.any(String),
                                     author: expect.any(String),
+                                    created_at: expect.anything(),
+                                    comment_count: expect.any(String)
                                 })
                             })
                     })
@@ -146,6 +148,23 @@ describe("/api", () => {
                                     votes: 17,
                                     topic: "cats",
                                     author: "rogersop"
+                                })
+                            })
+                    })
+
+                    test("accepts an inc_vote: newVote and increments the votes value by newVote", () => {
+                        return request(app).patch("/api/articles/1")
+                            .send({ inc_votes: 1 })
+                            .expect(200)
+                            .then(response => {
+                                expect(response.body.articles[0]).toMatchObject({
+                                    article_id: 1,
+                                    title: expect.any(String),
+                                    body: expect.any(String),
+                                    votes: 101,
+                                    topic: expect.any(String),
+                                    author: expect.any(String),
+                                    created_at: expect.anything()
                                 })
                             })
                     })

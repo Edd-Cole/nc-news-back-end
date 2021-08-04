@@ -42,7 +42,8 @@ const patchArticleByID = (request, response, next) => {
             } else if (error.code === "22P02") {
                 next({ code: 400, msg: "invalid type for key" })
             } else {
-                next()
+                console.log(error)
+                next(error)
             }
         })
 }
