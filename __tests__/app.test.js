@@ -61,6 +61,43 @@ describe("/api", () => {
                 })
             })
         })
+
+        describe("/:username", () => {
+            describe.only("/ - GET", () => {
+                //404 - user not found
+                //400 - safe against SQL Injection
+                describe("status 200 - Success", () => {
+                    test("grabs a user by their username", () => {
+                        return request(app).get("/api/users/lurker").expect(200)
+                            .then(response => {
+                                expect(response.body.users).toMatchObject({
+                                    username: "lurker",
+                                    avatar_url: expect.any(String),
+                                    name: expect.any(String)
+                                })
+                            })
+                    })
+                })
+
+                describe("status 400 - Bad Request", () => {
+                    test("type for /:username is bad", () => {
+                        return request(app).get("/api/users/1").expect(400)
+                            .then(response => {
+                                expect(response.body.msg).toBe("username must be a String")
+                            })
+                    })
+                })
+
+                describe("status 404 - Page Not Found", () => {
+                    test("user does not exist", () => {
+                        return request(app).get("/api/users/dogman").expect(404)
+                            .then(response => {
+                                expect(response.body.msg).toBe("user does not exist")
+                            })
+                    })
+                })
+            })
+        })
     })
 
     describe("/articles", () => {
@@ -679,7 +716,7 @@ describe("/api", () => {
             })
         })
 
-        describe.only("/:comment_id", () => {
+        describe("/:comment_id", () => {
             describe("/ - DELETE", () => {
                 describe("status 204 - Success: No Content", () => {
                     test("deletes a comment", async() => {
