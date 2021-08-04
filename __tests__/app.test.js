@@ -66,7 +66,7 @@ describe("/api", () => {
     describe("/articles", () => {
         describe("/ - GET", () => {
             describe("status 200 - Success", () => {
-                test("returns all the articles", () => {
+                test("returns all the articles, default limit of 10", () => {
                     return request(app).get("/api/articles").expect(200)
                         .then(response => {
                             expect(response.body.articles).not.toHaveLength(0)
@@ -144,7 +144,7 @@ describe("/api", () => {
                         })
                 })
 
-                test("returns list of articles when all queries used", () => {
+                test("returns a list of articles when all queries used", () => {
                     return request(app).get("/api/articles?sortBy=title&orderBy=desc&topic=mitch").expect(200)
                         .then(response => {
                             expect(response.body.articles).not.toHaveLength(0)
@@ -163,6 +163,22 @@ describe("/api", () => {
                             expect(response.body.articles).toBeSortedBy("title", { descending: true })
                         })
                 })
+
+                test("returns a set number of articles if specified a limit", () => {
+                    return request(app).get("/api/articles?limit=2").expect(200)
+                        .then(response => {
+                            expect(response.body.articles).toHaveLength(2)
+                        })
+                })
+
+                test("returns a set number of articles from the start of a page", () => {
+                    return request(app).get("/api/articles?limit=2&page=2").expect(200)
+                        .then(response => {
+                            expect(response.body.articles[0].article_id).toBe(3)
+                            expect(response.body.articles[1].article_id).toBe(4)
+                        })
+                })
+
             })
 
             describe("status 400 - Bad Request", () => {
@@ -187,12 +203,30 @@ describe("/api", () => {
                         })
                 })
 
+                test("rejects when passed invalid queries - limit", () => {
+                    return request(app).get("/api/articles?topic=Bingo").expect(400)
+                        .then(response => {
+                            expect(response.body.msg).toBe("Invalid query")
+                        })
+                })
+
+                test("rejects when passed invalid queries - page", () => {
+                    return request(app).get("/api/articles?topic=Bingo").expect(400)
+                        .then(response => {
+                            expect(response.body.msg).toBe("Invalid query")
+                        })
+                })
+
                 test("safe against SQL Injection #1", async() => {
                     await request(app).get("/api/articles?sortBy=DROP TABLE articles").expect(400)
                         .then(response => expect(response.body.msg).toBe("Invalid query"))
                     await request(app).get("/api/articles?orderBy=DROP TABLE articles").expect(400)
                         .then(response => expect(response.body.msg).toBe("Invalid query"))
                     await request(app).get("/api/articles?topic=DROP TABLE articles").expect(400)
+                        .then(response => expect(response.body.msg).toBe("Invalid query"))
+                    await request(app).get("/api/articles?limit=DROP TABLE articles").expect(400)
+                        .then(response => expect(response.body.msg).toBe("Invalid query"))
+                    await request(app).get("/api/articles?page=DROP TABLE articles").expect(400)
                         .then(response => expect(response.body.msg).toBe("Invalid query"))
                     await db.query("SELECT * FROM articles").then(articles => expect(articles.rows).not.toBe(0))
                 })
@@ -203,6 +237,10 @@ describe("/api", () => {
                     await request(app).get("/api/articles?orderBy='DROP TABLE articles'").expect(400)
                         .then(response => expect(response.body.msg).toBe("Invalid query"))
                     await request(app).get("/api/articles?topic='DROP TABLE articles'").expect(400)
+                        .then(response => expect(response.body.msg).toBe("Invalid query"))
+                    await request(app).get("/api/articles?limit='DROP TABLE articles'").expect(400)
+                        .then(response => expect(response.body.msg).toBe("Invalid query"))
+                    await request(app).get("/api/articles?page='DROP TABLE articles'").expect(400)
                         .then(response => expect(response.body.msg).toBe("Invalid query"))
                     await db.query("SELECT * FROM articles").then(articles => expect(articles.rows).not.toBe(0))
                 })
@@ -397,7 +435,7 @@ describe("/api", () => {
             })
 
             describe("/comments", () => {
-                describe("/ - GET", () => {
+                describe.only("/ - GET", () => {
                     describe("status 200 - Success", () => {
                         test("return comments associated with an article", () => {
                             return request(app).get("/api/articles/1/comments").expect(200)
@@ -414,21 +452,49 @@ describe("/api", () => {
                                     })
                                 })
                         })
+
+                        test("return comments with a limit", () => {
+                            return request(app).get("/api/articles/1/comments?limit=1").expect(200)
+                                .then(response => {
+                                    expect(response.body.comments).toHaveLength(1)
+                                })
+                        })
+
+                        test("return comments from the specified page with a limit", () => {
+                            return request(app).get("/api/articles/1/comments?limit=1&page=2").expect(200)
+                                .then(response => {
+                                    expect(response.body.comments[0].comment_id).toBe(3);
+                                    expect(response.body.comments[1]).toBe(undefined)
+                                })
+                        })
                     })
 
                     describe("status 400 - Bad Request", () => {
                         test("returns an error when passed an invalid type of article_id", () => {
                             return request(app).get("/api/articles/dog/comments").expect(400)
                                 .then(response => {
-                                    expect(response.body.msg).toBe("invalid type for article_id")
+                                    expect(response.body.msg).toBe("invalid type for endpoint")
                                 })
                         })
 
-                        test("safe against SQL Injection", () => {
+                        test("returns an error when passed an invalid type for queries", async() => {
+                            await request(app).get("/api/articles/1/comments?limit=bing").expect(400)
+                                .then(response => { expect(response.body.msg).toBe("invalid type for endpoint") })
+                            await request(app).get("/api/articles/1/comments?page=bing").expect(400)
+                                .then(response => { expect(response.body.msg).toBe("invalid type for endpoint") })
+
+                        })
+
+                        test("safe against SQL Injection #1", () => {
                             return request(app).get("/api/articles/1; DROP TABLE articles;/comments").expect(400)
                                 .then(response => {
-                                    expect(response.body.msg).toBe("invalid type for article_id")
+                                    expect(response.body.msg).toBe("invalid type for endpoint")
                                 })
+                        })
+
+                        test("safe against SQL Injection #2", async() => {
+                            await request(app).get("/api/articles/1/comments?limit='DROP TABLE articles'").expect(400)
+                                .then(response => { expect(response.body.msg).toBe("invalid type for endpoint") })
                         })
                     })
 
@@ -573,6 +639,42 @@ describe("/api", () => {
                                 })
                             })
                         })
+                })
+
+                test("returns the comments when applied a limit", () => {
+                    return request(app).get("/api/comments?limit=10").expect(200)
+                        .then(response => {
+                            expect(response.body.comments).toHaveLength(10)
+                        })
+                })
+
+                test("returns the comments on the correct page, works for both", () => {
+                    return request(app).get("/api/comments?limit=5&page=3").expect(200)
+                        .then(response => {
+                            expect(response.body.comments[0].comment_id).toBe(11)
+                            expect(response.body.comments[1].comment_id).toBe(12)
+                            expect(response.body.comments[2].comment_id).toBe(13)
+                            expect(response.body.comments[3].comment_id).toBe(14)
+                            expect(response.body.comments[4].comment_id).toBe(15)
+                            expect(response.body.comments[5]).toBe(undefined)
+                        })
+                })
+            })
+
+            describe("status 400 - Bad Request", () => {
+                test("rejects invalid query attempts", async() => {
+                    await request(app).get("/api/comments?limit='number'").expect(400)
+                        .then(response => { expect(response.body.msg).toBe("invalid query") })
+                    await request(app).get("/api/comments?page='number'").expect(400)
+                        .then(response => { expect(response.body.msg).toBe("invalid query") })
+                })
+
+                test("safe against SQL Injection", async() => {
+                    await request(app).get("/api/comments?limit='DROP TABLE comments'").expect(400)
+                        .then(response => { expect(response.body.msg).toBe("invalid query") })
+                    await request(app).get("/api/comments?page='DROP TABLE comments'").expect(400)
+                        .then(response => { expect(response.body.msg).toBe("invalid query") })
+
                 })
             })
         })

@@ -12,7 +12,6 @@ const getArticles = (request, response, next) => {
         })
         .catch(error => {
             if (error.code = 42703) {
-                // console.log(error)
                 next({ code: 400, msg: "Invalid query" })
             } else {
                 console.log(error)
@@ -56,7 +55,6 @@ const patchArticleByID = (request, response, next) => {
             } else if (error.code === "22P02") {
                 next({ code: 400, msg: "invalid type for key" })
             } else {
-                console.log(error)
                 next(error)
             }
         })
@@ -64,7 +62,8 @@ const patchArticleByID = (request, response, next) => {
 
 const getCommentsByArticleID = (request, response, next) => {
     const { article_id } = request.params
-    selectCommentsByArticleID(article_id)
+    const commentsInfo = request.query
+    selectCommentsByArticleID(article_id, commentsInfo)
         .then(comments => {
             //Implicit error handling - code does not throw errors
             if (comments.length === 0) {
@@ -76,7 +75,7 @@ const getCommentsByArticleID = (request, response, next) => {
         .catch(error => {
             //Explicit error handling - code does throw erros
             if (error.code = "22P02") {
-                next({ code: 400, msg: "invalid type for article_id" })
+                next({ code: 400, msg: "invalid type for endpoint" })
             } else {
                 console.log(error)
                 next();

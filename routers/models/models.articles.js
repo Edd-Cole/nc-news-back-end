@@ -1,21 +1,24 @@
 const db = require("../../db/connection.js");
 
-const selectArticles = ({ sortBy, orderBy, topic }) => {
+const selectArticles = ({ sortBy, orderBy, topic, limit, page }) => {
     //SQL Injection cleansing
     sortBy = sortBy ? sortBy.replace(/\s/g, "") : "article_id";
     orderBy = orderBy ? orderBy.replace(/\s/g, "") : "ASC";
     topic = topic ? topic.replace(/\s/g, "") : "";
+    limit = limit ? parseInt(limit.toString().replace(/\s/g, "")) : 10;
+    page = page ? parseInt(page.toString().replace(/\s/g, "")) : 1;
     //Creating a string to insert to filter by topic so we can easily add it into the query below
     let topicString = topic ? `WHERE articles.topic = '${topic}'` : "";
     //database query
     return db.query(`
     SELECT articles.article_id, articles.title, articles.body, articles.votes, articles.topic, articles.author, articles.created_at, COUNT(comments.comment_id) AS comment_count
     FROM articles
-    JOIN comments
+    LEFT JOIN comments
     ON articles.article_id = comments.article_id
     ${topicString}
     GROUP BY articles.article_id
-    ORDER BY ${sortBy} ${orderBy}`)
+    ORDER BY ${sortBy} ${orderBy}
+    LIMIT ${limit} OFFSET ${(page-1)*limit}`)
         .then(articles => {
             return articles.rows;
         })
@@ -81,13 +84,14 @@ const updateArticleByID = async(article_id, articleInfo) => {
         })
 }
 
-const selectCommentsByArticleID = (article_id) => {
+const selectCommentsByArticleID = (article_id, { limit = 10, page = 1 }) => {
     return db.query(`
     SELECT comment_id, articles.title, comments.author, articles.article_id, comments.votes, comments.body
     FROM articles
     JOIN comments
     ON articles.article_id = comments.article_id
-    WHERE articles.article_id = $1`, [article_id])
+    WHERE articles.article_id = $1
+    LIMIT ${limit} OFFSET ${(page - 1)*limit}`, [article_id])
         .then(response => {
             return response.rows;
         })
