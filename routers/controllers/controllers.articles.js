@@ -1,7 +1,8 @@
 const { selectArticles, selectArticleByID, updateArticleByID, selectCommentsByArticleID, addCommentByArticleID } = require("../models/models.articles.js");
 
 const getArticles = (request, response) => {
-    selectArticles()
+    const queries = request.query
+    selectArticles(queries)
         .then((articles) => {
             response.status(200).send({ articles });
         });

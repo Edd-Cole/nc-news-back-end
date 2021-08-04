@@ -4,6 +4,7 @@ const app = require("../routers/app.js")
 const testData = require('../db/data/test-data/index.js');
 const fs = require("fs/promises")
 const seed = require('../db/seeds/seed.js');
+require("jest-sorted")
 
 beforeEach(() => seed(testData));
 afterAll(() => db.end());
@@ -63,26 +64,53 @@ describe("/api", () => {
     })
 
     describe("/articles", () => {
-        describe("/ - GET", () => {
-            test("status 200 - returns all the articles", () => {
-                return request(app).get("/api/articles").expect(200)
-                    .then(response => {
-                        response.body.articles.forEach(article => {
-                            expect(article).toMatchObject({
-                                article_id: expect.any(Number),
-                                title: expect.any(String),
-                                body: expect.any(String),
-                                votes: expect.any(Number),
-                                topic: expect.any(String),
-                                author: expect.any(String),
-                                created_at: expect.anything(),
-                                comment_count: expect.any(String)
+        describe.only("/ - GET", () => {
+            //200 accepts order as query
+            //200 accepts a topics filter query
+            //200 accepts a combination of queries
+            //400 rejects when passed invalid queries
+            //400 safe against SQL Injection #1 #2
+            describe("status 200 - Success", () => {
+                test("returns all the articles", () => {
+                    return request(app).get("/api/articles").expect(200)
+                        .then(response => {
+                            expect(response.body.articles).not.toHaveLength(0)
+                            response.body.articles.forEach(article => {
+                                expect(article).toMatchObject({
+                                    article_id: expect.any(Number),
+                                    title: expect.any(String),
+                                    body: expect.any(String),
+                                    votes: expect.any(Number),
+                                    topic: expect.any(String),
+                                    author: expect.any(String),
+                                    created_at: expect.anything(),
+                                    comment_count: expect.any(String)
+                                })
                             })
                         })
-                    })
+                })
+                test("returns the articles sorted by the query", () => {
+                    return request(app).get("/api/articles?sortBy=topic").expect(200)
+                        .then(response => {
+                            expect(response.body.articles).not.toHaveLength(0)
+                            response.body.articles.forEach(article => {
+                                expect(article).toMatchObject({
+                                    article_id: expect.any(Number),
+                                    title: expect.any(String),
+                                    body: expect.any(String),
+                                    votes: expect.any(Number),
+                                    topic: expect.any(String),
+                                    author: expect.any(String),
+                                    created_at: expect.anything(),
+                                    comment_count: expect.any(String)
+                                })
+                            })
+                            console.log(response.body.articles)
+                            expect(response.body.articles).toBeSortedBy('topic')
+                        })
+                })
             })
         })
-
         describe("/:article_id", () => {
             describe("/ - GET", () => {
                 describe("status 200 - Success", () => {
