@@ -1,5 +1,2 @@
 node_modules
 .environment-variables
-package-lock.json
-package.json
-__tests__
