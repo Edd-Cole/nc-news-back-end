@@ -64,12 +64,7 @@ describe("/api", () => {
     })
 
     describe("/articles", () => {
-        describe.only("/ - GET", () => {
-            //200 accepts order as query
-            //200 accepts a topics filter query
-            //200 accepts a combination of queries
-            //400 rejects when passed invalid queries
-            //400 safe against SQL Injection #1 #2
+        describe("/ - GET", () => {
             describe("status 200 - Success", () => {
                 test("returns all the articles", () => {
                     return request(app).get("/api/articles").expect(200)
@@ -89,6 +84,7 @@ describe("/api", () => {
                             })
                         })
                 })
+
                 test("returns the articles sorted by the query", () => {
                     return request(app).get("/api/articles?sortBy=topic").expect(200)
                         .then(response => {
@@ -105,12 +101,114 @@ describe("/api", () => {
                                     comment_count: expect.any(String)
                                 })
                             })
-                            console.log(response.body.articles)
                             expect(response.body.articles).toBeSortedBy('topic')
                         })
                 })
+
+                test("returns the articles ordered using orderBy query", () => {
+                    return request(app).get("/api/articles?orderBy=DESC").expect(200)
+                        .then(response => {
+                            expect(response.body.articles).not.toHaveLength(0);
+                            response.body.articles.forEach(article => {
+                                expect(article).toMatchObject({
+                                    article_id: expect.any(Number),
+                                    title: expect.any(String),
+                                    body: expect.any(String),
+                                    votes: expect.any(Number),
+                                    topic: expect.any(String),
+                                    author: expect.any(String),
+                                    created_at: expect.anything(),
+                                    comment_count: expect.any(String)
+                                })
+                            })
+                            expect(response.body.articles).toBeSortedBy("article_id", { descending: true })
+                        })
+                })
+
+                test("returns a list of articles filtered by the topic query", () => {
+                    return request(app).get("/api/articles?topic=cats").expect(200)
+                        .then(response => {
+                            expect(response.body.articles).not.toHaveLength(0)
+                            response.body.articles.forEach(article => {
+                                expect(article).toMatchObject({
+                                    article_id: expect.any(Number),
+                                    title: expect.any(String),
+                                    body: expect.any(String),
+                                    votes: expect.any(Number),
+                                    topic: "cats",
+                                    author: expect.any(String),
+                                    created_at: expect.anything(),
+                                    comment_count: expect.any(String)
+                                })
+                            })
+                        })
+                })
+
+                test("returns list of articles when all queries used", () => {
+                    return request(app).get("/api/articles?sortBy=title&orderBy=desc&topic=mitch").expect(200)
+                        .then(response => {
+                            expect(response.body.articles).not.toHaveLength(0)
+                            response.body.articles.forEach(article => {
+                                expect(article).toMatchObject({
+                                    article_id: expect.any(Number),
+                                    title: expect.any(String),
+                                    body: expect.any(String),
+                                    votes: expect.any(Number),
+                                    topic: "mitch",
+                                    author: expect.any(String),
+                                    created_at: expect.anything(),
+                                    comment_count: expect.any(String)
+                                })
+                            })
+                            expect(response.body.articles).toBeSortedBy("title", { descending: true })
+                        })
+                })
+            })
+
+            describe("status 400 - Bad Request", () => {
+                test("rejects when passed invalid queries - sortBy", () => {
+                    return request(app).get("/api/articles?sortBy=Bingo").expect(400)
+                        .then(response => {
+                            expect(response.body.msg).toBe("Invalid query")
+                        })
+                })
+
+                test("rejects when passed invalid queries - orderBy", () => {
+                    return request(app).get("/api/articles?orderBy=Bingo").expect(400)
+                        .then(response => {
+                            expect(response.body.msg).toBe("Invalid query")
+                        })
+                })
+
+                test("rejects when passed invalid queries - topics", () => {
+                    return request(app).get("/api/articles?topic=Bingo").expect(400)
+                        .then(response => {
+                            expect(response.body.msg).toBe("Invalid query")
+                        })
+                })
+
+                test("safe against SQL Injection #1", async() => {
+                    await request(app).get("/api/articles?sortBy=DROP TABLE articles").expect(400)
+                        .then(response => expect(response.body.msg).toBe("Invalid query"))
+                    await request(app).get("/api/articles?orderBy=DROP TABLE articles").expect(400)
+                        .then(response => expect(response.body.msg).toBe("Invalid query"))
+                    await request(app).get("/api/articles?topic=DROP TABLE articles").expect(400)
+                        .then(response => expect(response.body.msg).toBe("Invalid query"))
+                    await db.query("SELECT * FROM articles").then(articles => expect(articles.rows).not.toBe(0))
+                })
+
+                test("safe against SQL injection #2", async() => {
+                    await request(app).get("/api/articles?sortBy='DROP TABLE articles'").expect(400)
+                        .then(response => expect(response.body.msg).toBe("Invalid query"))
+                    await request(app).get("/api/articles?orderBy='DROP TABLE articles'").expect(400)
+                        .then(response => expect(response.body.msg).toBe("Invalid query"))
+                    await request(app).get("/api/articles?topic='DROP TABLE articles'").expect(400)
+                        .then(response => expect(response.body.msg).toBe("Invalid query"))
+                    await db.query("SELECT * FROM articles").then(articles => expect(articles.rows).not.toBe(0))
+                })
             })
         })
+
         describe("/:article_id", () => {
             describe("/ - GET", () => {
                 describe("status 200 - Success", () => {
@@ -457,8 +555,6 @@ describe("/api", () => {
                 })
             })
         })
-
-
     })
 
     describe("/comments", () => {

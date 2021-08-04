@@ -1,11 +1,24 @@
 const { selectArticles, selectArticleByID, updateArticleByID, selectCommentsByArticleID, addCommentByArticleID } = require("../models/models.articles.js");
 
-const getArticles = (request, response) => {
+const getArticles = (request, response, next) => {
     const queries = request.query
     selectArticles(queries)
         .then((articles) => {
-            response.status(200).send({ articles });
-        });
+            if (articles.length === 0) {
+                next({ code: 400, msg: "Invalid query" })
+            } else {
+                response.status(200).send({ articles });
+            }
+        })
+        .catch(error => {
+            if (error.code = 42703) {
+                // console.log(error)
+                next({ code: 400, msg: "Invalid query" })
+            } else {
+                console.log(error)
+                next(error)
+            }
+        })
 }
 
 const getArticleByID = (request, response, next) => {

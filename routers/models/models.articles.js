@@ -1,13 +1,21 @@
 const db = require("../../db/connection.js");
 
-const selectArticles = ({ sortBy = "article_id" }) => {
+const selectArticles = ({ sortBy, orderBy, topic }) => {
+    //SQL Injection cleansing
+    sortBy = sortBy ? sortBy.replace(/\s/g, "") : "article_id";
+    orderBy = orderBy ? orderBy.replace(/\s/g, "") : "ASC";
+    topic = topic ? topic.replace(/\s/g, "") : "";
+    //Creating a string to insert to filter by topic so we can easily add it into the query below
+    let topicString = topic ? `WHERE articles.topic = '${topic}'` : "";
+    //database query
     return db.query(`
     SELECT articles.article_id, articles.title, articles.body, articles.votes, articles.topic, articles.author, articles.created_at, COUNT(comments.comment_id) AS comment_count
     FROM articles
     JOIN comments
     ON articles.article_id = comments.article_id
+    ${topicString}
     GROUP BY articles.article_id
-    ORDER BY ${sortBy} ASC`)
+    ORDER BY ${sortBy} ${orderBy}`)
         .then(articles => {
             return articles.rows;
         })
