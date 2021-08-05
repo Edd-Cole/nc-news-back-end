@@ -28,4 +28,17 @@ const selectUserByUsername = (username) => {
 //     `, [username])
 // }
 
-module.exports = { selectUsers, selectUserByUsername };
+const addUser = ({ username, name, avatar_url = "no_avatar" }) => {
+    return db.query(`
+    INSERT INTO users
+        (username, avatar_url, name)
+    VALUES
+        ($1, $2, $3)
+    RETURNING *;
+    `, [username, avatar_url, name])
+        .then(users => {
+            return users.rows
+        })
+}
+
+module.exports = { selectUsers, selectUserByUsername, addUser };

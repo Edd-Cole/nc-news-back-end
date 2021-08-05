@@ -113,6 +113,39 @@ describe("/api", () => {
             })
         })
 
+        describe.only("/ - POST", () => {
+            describe("status 201 - Created", () => {
+                test("creates a user, avatar_url optional", async() => {
+                    await request(app).post("/api/users")
+                        .send({ username: "TheBestNameEver", name: "Me", })
+                        .expect(201)
+                        .then(response => {
+                            expect(response.body.users[0]).toEqual({
+                                username: "TheBestNameEver",
+                                name: "Me",
+                                avatar_url: "no_avatar"
+                            })
+                        })
+                    await db.query("SELECT * FROM users WHERE username = 'TheBestNameEver'")
+                        .then(users => expect(users.rows[0]).toEqual({
+                            username: "TheBestNameEver",
+                            name: "Me",
+                            avatar_url: "no_avatar"
+                        }))
+                })
+            })
+
+            describe("status 400 - Bad Request", () => {
+                test("username is already in use", () => {
+                    return request(app).post("/api/users").send({ name: "lurker", name: "Me" })
+                        .expect(400)
+                        .then(users => {
+                            expect(users.body.msg).toBe("user already exists")
+                        })
+                })
+            })
+        })
+
         describe("/:username", () => {
             describe("/ - GET", () => {
                 describe("status 200 - Success", () => {
