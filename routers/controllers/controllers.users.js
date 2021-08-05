@@ -1,4 +1,4 @@
-const { selectUsers, selectUserByUsername, removeUserByUsername, addUser } = require("../models/models.users.js");
+const { selectUsers, selectUserByUsername, removeUserByUsername, addUser, updateUserByUsername } = require("../models/models.users.js");
 
 const getUsers = (request, response, next) => {
     selectUsers()
@@ -26,17 +26,31 @@ const getUserByUsername = (request, response, next) => {
         })
 }
 
-// const deleteUserByUsername = (request, response, next) => {
-//     const { username } = request.params
-//     removeUserByUsername(username)
-//         .then(users => {
-//             response.sendStatus(204)
-//         })
-//         .catch(error => {
-//             console.log(error)
-//             next(error)
-//         })
-// }
+const deleteUserByUsername = (request, response, next) => {
+    const { username } = request.params
+    removeUserByUsername(username)
+        .then((users) => {
+            response.sendStatus(204)
+        })
+        .catch(error => {
+            console.log(error)
+            next(error)
+        })
+}
+
+const patchUserByUsername = (request, response, next) => {
+    const { username } = request.params
+    let { body } = request
+    updateUserByUsername(username, body)
+        .then(users => {
+            console.log(users)
+            response.status(200).send({ users })
+        })
+        .catch(error => {
+            console.log(error)
+            next(error)
+        })
+}
 
 const postUser = (request, response, next) => {
     const { body } = request
@@ -53,4 +67,4 @@ const postUser = (request, response, next) => {
         })
 }
 
-module.exports = { getUsers, getUserByUsername, postUser };
+module.exports = { getUsers, getUserByUsername, deleteUserByUsername, postUser, patchUserByUsername };

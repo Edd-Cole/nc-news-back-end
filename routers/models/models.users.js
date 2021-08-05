@@ -18,15 +18,45 @@ const selectUserByUsername = (username) => {
         })
 }
 
-// const removeUserByUsername = await (username) => {
-//     await db.query(`
-//     ALTER TABLE users
-//     SET username = 'deleted',
-//     avatar_url = 'deleted',
-//     name = 'deleted'
-//     WHERE username = '$1'
-//     `, [username])
-// }
+const removeUserByUsername = async(username) => {
+    await db.query(`
+    UPDATE comments
+    SET author = 'deleted_user'
+    WHERE author = $1;
+    `, [username])
+    await db.query(`
+            UPDATE articles
+            SET author = 'deleted_user'
+            WHERE author = $1;
+            `, [username])
+    return db.query(`
+            DELETE FROM users
+            WHERE username = $1;
+            `, [username])
+}
+
+const updateUserByUsername = async(username, { userName, avatar_url, name }) => {
+    userNameUpdate = userName ? `username = '${userName}',` : "";
+    avatar_urlUpdate = avatar_url ? `avatar_url = '${avatar_url}',` : "";
+    nameUpdate = name ? `name = '${name}',` : "";
+    let updateString = `${userNameUpdate}${avatar_urlUpdate}${nameUpdate}`.slice(0, -1)
+        //database query to update the user
+        // await db.query(`
+        // UPDATE comments
+        // SET ${updateString}
+        // WHERE username = "$1"
+        // `, [username])
+    return db.query(`
+    UPDATE users
+    SET ${updateString}
+    WHERE username = '${username}'
+    RETURNING *;
+    `)
+        .then(users => {
+            console.log(users.rows)
+            return users.rows
+        })
+}
 
 const addUser = ({ username, name, avatar_url = "no_avatar" }) => {
     return db.query(`
@@ -41,4 +71,5 @@ const addUser = ({ username, name, avatar_url = "no_avatar" }) => {
         })
 }
 
-module.exports = { selectUsers, selectUserByUsername, addUser };
+
+module.exports = { selectUsers, selectUserByUsername, removeUserByUsername, addUser, updateUserByUsername };
