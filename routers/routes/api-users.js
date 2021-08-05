@@ -4,6 +4,7 @@ const { getUsers, getUserByUsername, deleteUserByUsername, postUser, patchUserBy
 apiUsers.route("/")
     .get(getUsers)
     .post(postUser)
+
 apiUsers.route("/:username")
     .get(getUserByUsername)
     .patch(patchUserByUsername)
