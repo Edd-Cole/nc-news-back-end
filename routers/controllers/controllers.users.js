@@ -38,4 +38,4 @@ const getUserByUsername = (request, response, next) => {
 //         })
 // }
 
-module.exports = { getUsers, getUserByUsername, deleteUserByUsername };
+module.exports = { getUsers, getUserByUsername };
