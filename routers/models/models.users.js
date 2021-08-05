@@ -28,4 +28,4 @@ const selectUserByUsername = (username) => {
 //     `, [username])
 // }
 
-module.exports = { selectUsers, selectUserByUsername, removeUserByUsername };
+module.exports = { selectUsers, selectUserByUsername };
