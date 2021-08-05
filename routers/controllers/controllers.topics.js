@@ -1,4 +1,4 @@
-const { selectTopics, addTopic } = require("../models/models.topics.js");
+const { selectTopics, addTopic, updateTopicByID } = require("../models/models.topics.js");
 
 const getTopics = (request, response, next) => {
     selectTopics()
@@ -25,4 +25,30 @@ const postTopic = (request, response, next) => {
         })
 }
 
-module.exports = { getTopics, postTopic };
+const patchTopicByID = (request, response, next) => {
+    const { slug } = request.params
+    const { slug: invalidSlug, description } = request.body;
+    //slug error catching
+    if (invalidSlug) {
+        return next({ code: 400, msg: "cannot change slug" })
+    }
+    //transferring to models
+    updateTopicByID(slug, invalidSlug, description)
+        .then(topics => {
+            if (topics.length === 0) {
+                next({ code: 400, msg: "slug does not exist" })
+            } else {
+                response.status(200).send({ topics })
+            }
+        })
+        .catch(error => {
+            if (error.code === "42601") {
+                next({ code: 400, msg: "slug does not exist" })
+            } else {
+                console.log(error)
+                next(error)
+            }
+        })
+}
+
+module.exports = { getTopics, postTopic, patchTopicByID };

@@ -20,4 +20,16 @@ const addTopic = ({ slug, description }) => {
         })
 }
 
-module.exports = { selectTopics, addTopic }
+const updateTopicByID = (slug, invalidSlug, description) => {
+    return db.query(`
+    UPDATE topics
+    SET description = '${description}'
+    WHERE slug = '${slug}'
+    RETURNING *;
+    `)
+        .then(topics => {
+            return topics.rows
+        })
+}
+
+module.exports = { selectTopics, addTopic, updateTopicByID }

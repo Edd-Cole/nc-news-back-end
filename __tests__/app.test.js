@@ -91,6 +91,68 @@ describe("/api", () => {
                 })
             })
         })
+
+        describe("/:slug", () => {
+            describe("/ - PATCH", () => {
+                describe("status 200 - Success", () => {
+                    test("correctly updates the description", () => {
+                        return request(app).patch("/api/topics/cats")
+                            .send({ description: "Now including Tigers!" })
+                            .expect(200)
+                            .then(response => {
+                                expect(response.body.topics[0]).toEqual({
+                                    slug: "cats",
+                                    description: "Now including Tigers!"
+                                })
+                            })
+                    })
+
+                    test("safe against SQL Injection #1", async() => {
+                        await request(app).patch("/api/topics/cats")
+                            .send({
+                                description: "DROP TABLE articles"
+                            })
+                            .expect(200)
+
+                        await db.query("SELECT * FROM articles;")
+                            .then(response => {
+                                expect(response.rows).not.toHaveLength(0)
+                            })
+                    })
+                })
+
+                describe("status 400 - Bad Request", () => {
+                    test("rejects patching the slug", () => {
+                        return request(app).patch("/api/topics/cats")
+                            .send({ slug: "dogs" })
+                            .expect(400)
+                            .then(response => {
+                                expect(response.body.msg).toBe("cannot change slug")
+                            })
+                    })
+
+                    test("slug does not exist", () => {
+                        return request(app).patch("/api/topics/doesNotExist")
+                            .send({ description: "does not exist" })
+                            .expect(400)
+                            .then(response => {
+                                expect(response.body.msg).toBe("slug does not exist")
+                            })
+                    })
+
+                    test("safe against SQL Injection #2", async() => {
+                        await request(app).patch("/api/topics/'DROP TABLE articles'")
+                            .send({ description: "'DROP TABLE articles'" })
+                            .expect(400)
+
+                        await db.query("SELECT * FROM articles")
+                            .then(response => {
+                                expect(response.rows).not.toHaveLength(0)
+                            })
+                    })
+                })
+            })
+        })
     })
 
     describe("/users", () => {
@@ -176,7 +238,7 @@ describe("/api", () => {
                 })
             })
 
-            describe.only("/ - PATCH", () => {
+            describe("/ - PATCH", () => {
                 describe("status 200 - Success", () => {
                     test("can update a field", () => {
                         return request(app).patch("/api/users/lurker")
@@ -209,7 +271,6 @@ describe("/api", () => {
                             .send({ name: 'DROP TABLE articles', avatar_url: "DROP TABLE articles" })
                             .expect(200)
                             .then(response => {
-                                console.log(response.body)
                                 expect(response.body.users[0]).toEqual({
                                     username: "lurker",
                                     name: "DROP TABLE articles",
