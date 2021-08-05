@@ -36,9 +36,6 @@ const removeUserByUsername = async(username) => {
 }
 
 const updateUserByUsername = async(userName, { username, avatar_url, name }) => {
-    //SQL Injection cleansing
-    // username = username.replace(/\'/g, /\'\'/)
-    // avatar_url = avatar_url.replace(/\'/g, /\'\'/)
     //build update string query for insertion below
     username = username ? `username = '${username}',` : "";
     avatar_url = avatar_url ? `avatar_url = '${avatar_url}',` : "";
