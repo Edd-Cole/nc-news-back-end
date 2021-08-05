@@ -18,4 +18,14 @@ const selectUserByUsername = (username) => {
         })
 }
 
-module.exports = { selectUsers, selectUserByUsername };
+const removeUserByUsername = await (username) => {
+    await db.query(`
+    ALTER TABLE users
+    SET username = 'deleted',
+    avatar_url = 'deleted',
+    name = 'deleted'
+    WHERE username = '$1'
+    `, [username])
+}
+
+module.exports = { selectUsers, selectUserByUsername, removeUserByUsername };

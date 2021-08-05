@@ -1,4 +1,4 @@
-const { selectUsers, selectUserByUsername } = require("../models/models.users.js");
+const { selectUsers, selectUserByUsername, removeUserByUsername } = require("../models/models.users.js");
 
 const getUsers = (request, response, next) => {
     selectUsers()
@@ -26,4 +26,16 @@ const getUserByUsername = (request, response, next) => {
         })
 }
 
-module.exports = { getUsers, getUserByUsername };
+const deleteUserByUsername = (request, response, next) => {
+    const { username } = request.params
+    removeUserByUsername(username)
+        .then(users => {
+            response.sendStatus(204)
+        })
+        .catch(error => {
+            console.log(error)
+            next(error)
+        })
+}
+
+module.exports = { getUsers, getUserByUsername, deleteUserByUsername };
