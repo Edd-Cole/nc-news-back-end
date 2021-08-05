@@ -39,16 +39,25 @@ const deleteUserByUsername = (request, response, next) => {
 }
 
 const patchUserByUsername = (request, response, next) => {
-    const { username } = request.params
+    const { username: userName } = request.params
     let { body } = request
-    updateUserByUsername(username, body)
+    updateUserByUsername(userName, body)
         .then(users => {
-            console.log(users)
-            response.status(200).send({ users })
+            if (users.length === 0) {
+                next({ code: 400, msg: "user does not exist" })
+            } else {
+                response.status(200).send({ users })
+            }
         })
         .catch(error => {
-            console.log(error)
-            next(error)
+            if (error.code === "23505") {
+                next({ code: 400, msg: "user already exists" })
+            } else if (error.code === "42601") {
+                next({ code: 400, msg: "No information to update" })
+            } else {
+                console.log(error)
+                next(error)
+            }
         })
 }
 

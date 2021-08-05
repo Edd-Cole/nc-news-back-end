@@ -35,25 +35,23 @@ const removeUserByUsername = async(username) => {
             `, [username])
 }
 
-const updateUserByUsername = async(username, { userName, avatar_url, name }) => {
-    userNameUpdate = userName ? `username = '${userName}',` : "";
-    avatar_urlUpdate = avatar_url ? `avatar_url = '${avatar_url}',` : "";
-    nameUpdate = name ? `name = '${name}',` : "";
-    let updateString = `${userNameUpdate}${avatar_urlUpdate}${nameUpdate}`.slice(0, -1)
-        //database query to update the user
-        // await db.query(`
-        // UPDATE comments
-        // SET ${updateString}
-        // WHERE username = "$1"
-        // `, [username])
+const updateUserByUsername = async(userName, { username, avatar_url, name }) => {
+    //SQL Injection cleansing
+    // username = username.replace(/\'/g, /\'\'/)
+    // avatar_url = avatar_url.replace(/\'/g, /\'\'/)
+    //build update string query for insertion below
+    username = username ? `username = '${username}',` : "";
+    avatar_url = avatar_url ? `avatar_url = '${avatar_url}',` : "";
+    name = name ? `name = '${name}',` : "";
+    let updateUserString = `${username}${avatar_url}${name}`.slice(0, -1)
+        // database query to update the user
     return db.query(`
     UPDATE users
-    SET ${updateString}
-    WHERE username = '${username}'
+    SET ${updateUserString}
+    WHERE username = '${userName}'
     RETURNING *;
     `)
         .then(users => {
-            console.log(users.rows)
             return users.rows
         })
 }

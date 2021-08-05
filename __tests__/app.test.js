@@ -178,17 +178,87 @@ describe("/api", () => {
 
             describe.only("/ - PATCH", () => {
                 describe("status 200 - Success", () => {
+                    test("can update a field", () => {
+                        return request(app).patch("/api/users/lurker")
+                            .send({ name: "Paul" })
+                            .expect(200)
+                            .then(response => {
+                                expect(response.body.users[0]).toEqual({
+                                    avatar_url: "https://www.golenbock.com/wp-content/uploads/2015/01/placeholder-user.png",
+                                    name: "Paul",
+                                    username: "lurker",
+                                })
+                            })
+                    })
+
                     test("updates a user, all fields accepted", () => {
                         return request(app).patch("/api/users/lurker")
                             .send({ username: "Bingo", avatar_url: "new", name: "lichen" })
                             .expect(200)
                             .then(response => {
-                                // console.log(response.body)
                                 expect(response.body.users[0]).toEqual({
                                     username: "Bingo",
                                     avatar_url: "new",
                                     name: "lichen"
                                 })
+                            })
+                    })
+
+                    test("safe against SQL Injection #1", async() => {
+                        await request(app).patch("/api/users/lurker")
+                            .send({ name: 'DROP TABLE articles', avatar_url: "DROP TABLE articles" })
+                            .expect(200)
+                            .then(response => {
+                                console.log(response.body)
+                                expect(response.body.users[0]).toEqual({
+                                    username: "lurker",
+                                    name: "DROP TABLE articles",
+                                    avatar_url: "DROP TABLE articles"
+                                })
+                            })
+                        await db.query("SELECT * FROM articles")
+                            .then(response => {
+                                expect(response.rows).not.toHaveLength(0)
+                            })
+                    })
+                })
+                describe("status 400 - Bad Request", () => {
+                    test("nothing is sent to update", () => {
+                        return request(app).patch("/api/users/lurker").send({}).expect(400)
+                            .then(response => {
+                                expect(response.body.msg).toBe("No information to update")
+                            })
+                    })
+
+                    test("user does not exist", () => {
+                        return request(app).patch("/api/users/dogman")
+                            .send({ username: "Bingo", avatar_url: "new", name: "lichen" })
+                            .expect(400)
+                            .then(response => {
+                                expect(response.body.msg).toBe("user does not exist")
+                            })
+                    })
+
+                    test("user already exists", () => {
+                        return request(app).patch("/api/users/lurker")
+                            .send({ username: "rogersop" })
+                            .expect(400)
+                            .then(response => {
+                                expect(response.body.msg).toBe("user already exists")
+                            })
+                    })
+
+                    test("safe against SQL Injection #2", async() => {
+                        await request(app).patch("/api/users/'DROP TABLE articles'")
+                            .send({ avatar_url: "none", name: "Jon" })
+                            .expect(400)
+                            .then(response => {
+                                expect(response.body.msg).toBe("No information to update")
+                            })
+
+                        await db.query("SELECT * FROM articles")
+                            .then(response => {
+                                expect(response.rows).not.toHaveLength(0)
                             })
                     })
                 })
