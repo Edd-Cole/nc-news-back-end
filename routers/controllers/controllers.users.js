@@ -26,16 +26,16 @@ const getUserByUsername = (request, response, next) => {
         })
 }
 
-const deleteUserByUsername = (request, response, next) => {
-    const { username } = request.params
-    removeUserByUsername(username)
-        .then(users => {
-            response.sendStatus(204)
-        })
-        .catch(error => {
-            console.log(error)
-            next(error)
-        })
-}
+// const deleteUserByUsername = (request, response, next) => {
+//     const { username } = request.params
+//     removeUserByUsername(username)
+//         .then(users => {
+//             response.sendStatus(204)
+//         })
+//         .catch(error => {
+//             console.log(error)
+//             next(error)
+//         })
+// }
 
 module.exports = { getUsers, getUserByUsername, deleteUserByUsername };

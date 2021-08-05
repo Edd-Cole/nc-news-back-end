@@ -143,18 +143,18 @@ describe("/api", () => {
                 })
             })
 
-            describe.only("/ - DELETE", () => {
-                describe("status 204 - Success: No Content", () => {
-                    test("deletes a user from the database", async() => {
-                        await request(app).delete("/api/users/1").expect(204)
-                        await db.query("SELECT * FROM users WHERE article_id = 1;")
-                            .then(response => {
-                                expect(response.body.username).toBe("deleted")
-                                expect(response.body.avatar_url).toBe("deleted")
-                            })
-                    })
-                })
-            })
+            // describe.only("/ - DELETE", () => {
+            //     describe("status 204 - Success: No Content", () => {
+            //         test("deletes a user from the database", async() => {
+            //             await request(app).delete("/api/users/1").expect(204)
+            //             await db.query("SELECT * FROM users WHERE article_id = 1;")
+            //                 .then(response => {
+            //                     expect(response.body.username).toBe("deleted")
+            //                     expect(response.body.avatar_url).toBe("deleted")
+            //                 })
+            //         })
+            //     })
+            // })
         })
     })
 
