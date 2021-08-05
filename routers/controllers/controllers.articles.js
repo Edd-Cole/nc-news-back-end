@@ -1,4 +1,4 @@
-const { selectArticles, selectArticleByID, updateArticleByID, selectCommentsByArticleID, addCommentByArticleID, addArticle } = require("../models/models.articles.js");
+const { selectArticles, selectArticleByID, updateArticleByID, selectCommentsByArticleID, addCommentByArticleID, addArticle, removeArticleByID } = require("../models/models.articles.js");
 
 const getArticles = (request, response, next) => {
     const queries = request.query
@@ -121,11 +121,28 @@ const postArticle = (request, response, next) => {
         })
 }
 
+const deleteArticleByID = (request, response, next) => {
+    const { article_id } = request.params
+    removeArticleByID(article_id)
+        .then(articles => {
+            response.sendStatus(204);
+        })
+        .catch(error => {
+            if (error.code === "22P02") {
+                next({ code: 400, msg: "article_id must be a Number" })
+            } else {
+                console.log(error)
+                next(error)
+            }
+        })
+}
+
 module.exports = {
     getArticles,
     getArticleByID,
     patchArticleByID,
     getCommentsByArticleID,
     postCommentByArticleID,
-    postArticle
+    postArticle,
+    deleteArticleByID
 };

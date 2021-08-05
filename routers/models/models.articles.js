@@ -27,7 +27,8 @@ const selectArticles = ({ sortBy, orderBy, topic, limit, page }) => {
 
 const selectArticleByID = (article_id) => {
     return db.query(`
-    SELECT articles.article_id, articles.title, articles.body, articles.votes, articles.topic, articles.author, articles.created_at, COUNT(comments.comment_id) AS comment_count
+    SELECT articles.article_id, articles.title, articles.body, articles.votes, articles.topic,
+    articles.author, articles.created_at, COUNT(comments.comment_id) AS comment_count
     FROM articles
     JOIN comments
     ON articles.article_id = comments.article_id
@@ -124,7 +125,19 @@ const addArticle = ({ title, body, topic, author }) => {
         })
 }
 
+const removeArticleByID = async(article_id) => {
+    await db.query(`
+    DELETE FROM comments
+    WHERE article_id = $1`, [article_id])
+
+    await db.query(`
+    DELETE FROM articles 
+    WHERE article_id = $1;`, [article_id])
+        .then(articles => { return articles })
+}
+
 module.exports = {
+    removeArticleByID,
     selectArticles,
     selectArticleByID,
     updateArticleByID,

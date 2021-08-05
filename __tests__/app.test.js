@@ -41,7 +41,7 @@ describe("/api", () => {
             })
         })
 
-        describe.only("/ - POST", () => {
+        describe("/ - POST", () => {
             describe("status 201 - Created", () => {
                 test("returns created topic", () => {
                     return request(app).post("/api/topics")
@@ -566,6 +566,29 @@ describe("/api", () => {
                         return request(app).patch("/api/articles/100000").send({ title: "Bingo" }).expect(404)
                             .then(response => {
                                 expect(response.body.msg).toBe("article does not exist")
+                            })
+                    })
+                })
+            })
+
+            describe.only("/ - DELETE", () => {
+                describe("status 204 - Success: No Content", () => {
+                    test("successfullly deletes an article from the database", async() => {
+                        await request(app).delete("/api/articles/1").expect(204)
+                        await db.query("SELECT * FROM articles WHERE article_id = 1")
+                            .then(article => expect(article.rows).toHaveLength(0))
+                        await db.query("SELECT * FROM articles")
+                            .then(response => {
+                                expect(response.rows).not.toHaveLength(0)
+                            })
+                    })
+                })
+
+                describe("status 400 - Bad Request", () => {
+                    test("wrong type for article_id", () => {
+                        return request(app).delete("/api/articles/dog").expect(400)
+                            .then(response => {
+                                expect(response.body.msg).toBe("article_id must be a Number")
                             })
                     })
                 })
