@@ -6,10 +6,10 @@
     "scripts": {
         "create-env-files": "node db/utils/.create-env-files.js",
         "setup-dbs": "psql -f ./db/setup.sql",
-        "seed": "node ./db/seeds/run-seed.js",
+        "seed": "node ./db/run-seed.js",
         "test": "jest",
         "start": "node listen.js",
-        "seed:prod": "NODE_ENV=production DATABASE_URL=$(heroku config:get DATABASE_URL) node db/seeds/run-seed.js"
+        "seed:prod": "NODE_ENV=production DATABASE_URL=$(heroku config:get DATABASE_URL) node db/run-seed.js"
     },
     "repository": {
         "type": "git",
