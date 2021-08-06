@@ -31,32 +31,4 @@ const replaceBelongsToWithArticleID = (comments, refTable) => {
     return newComments;
 }
 
-
-
-// const formatTopics = (topics) => {
-//     return topics.map(topic => {
-//         return [topic.slug, topic.description]
-//     })
-// }
-
-// const formatUsers = (users) => {
-//     return users.map((user) => {
-//         return [user.username, user.avatar_url, user.name]
-//     })
-// }
-
-// const formatArticles = (articles) => {
-//     return articles.map(article => {
-//         const { title, body, votes, topic, author, created_at } = article;
-//         return [title, body, votes, topic, author, created_at];
-//     })
-
-// }
-// const formatComments = (comments) => {
-//     return comments.map(comment => {
-//         const { body, article_id, created_by, votes, created_at } = comment
-//         return [created_by, article_id, votes, created_at, body]
-//     })
-// }
-
 module.exports = { createRefTable, replaceBelongsToWithArticleID, formatArray }

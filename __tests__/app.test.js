@@ -30,6 +30,7 @@ describe("/api", () => {
                 test("returns all the topics", () => {
                     return request(app).get("/api/topics").expect(200)
                         .then((response) => {
+                            expect(response.body.topics).toHaveLength(4)
                             response.body.topics.forEach(topic => {
                                 expect(topic).toMatchObject({
                                     slug: expect.any(String),
@@ -110,7 +111,7 @@ describe("/api", () => {
                     test("safe against SQL Injection #1", async() => {
                         await request(app).patch("/api/topics/cats")
                             .send({
-                                description: "DROP TABLE articles"
+                                description: "DROP TABLE articles;"
                             })
                             .expect(200)
 
@@ -141,8 +142,8 @@ describe("/api", () => {
                     })
 
                     test("safe against SQL Injection #2", async() => {
-                        await request(app).patch("/api/topics/'DROP TABLE articles'")
-                            .send({ description: "'DROP TABLE articles'" })
+                        await request(app).patch("/api/topics/'DROP TABLE articles;'")
+                            .send({ description: "'DROP TABLE articles;'" })
                             .expect(400)
 
                         await db.query("SELECT * FROM articles")
@@ -175,6 +176,7 @@ describe("/api", () => {
                 test("returns all the users", () => {
                     return request(app).get("/api/users").expect(200)
                         .then(response => {
+                            expect(response.body.users).toHaveLength(5)
                             response.body.users.forEach(user => {
                                 expect(user).toMatchObject({
                                     username: expect.any(String),
@@ -246,7 +248,7 @@ describe("/api", () => {
                     })
 
                     test("safe against SQL Injection", () => {
-                        return request(app).get("/api/users/'DROP TABLE articles").expect(404)
+                        return request(app).get("/api/users/'DROP TABLE articles;").expect(404)
                             .then(response => expect(response.body.msg).toBe("user does not exist"))
                     })
                 })
@@ -282,16 +284,16 @@ describe("/api", () => {
 
                     test("safe against SQL Injection #1", async() => {
                         await request(app).patch("/api/users/lurker")
-                            .send({ name: 'DROP TABLE articles', avatar_url: "DROP TABLE articles" })
+                            .send({ name: 'DROP TABLE articles;', avatar_url: "DROP TABLE articles;" })
                             .expect(200)
                             .then(response => {
                                 expect(response.body.users[0]).toEqual({
                                     username: "lurker",
-                                    name: "DROP TABLE articles",
-                                    avatar_url: "DROP TABLE articles"
+                                    name: "DROP TABLE articles;",
+                                    avatar_url: "DROP TABLE articles;"
                                 })
                             })
-                        await db.query("SELECT * FROM articles")
+                        await db.query("SELECT * FROM articles;")
                             .then(response => {
                                 expect(response.rows).not.toHaveLength(0)
                             })
@@ -324,7 +326,7 @@ describe("/api", () => {
                     })
 
                     test("safe against SQL Injection #2", async() => {
-                        await request(app).patch("/api/users/'DROP TABLE articles'")
+                        await request(app).patch("/api/users/'DROP TABLE articles;'")
                             .send({ avatar_url: "none", name: "Jon" })
                             .expect(400)
                             .then(response => {
@@ -356,10 +358,10 @@ describe("/api", () => {
     describe("/articles", () => {
         describe("/ - GET", () => {
             describe("status 200 - Success", () => {
-                test("returns all the articles, default limit of 10", () => {
+                test("returns all the articles, default limit of 10 per page", () => {
                     return request(app).get("/api/articles").expect(200)
                         .then(response => {
-                            expect(response.body.articles).not.toHaveLength(0)
+                            expect(response.body.articles).toHaveLength(10)
                             response.body.articles.forEach(article => {
                                 expect(article).toMatchObject({
                                     article_id: expect.any(Number),
@@ -454,10 +456,11 @@ describe("/api", () => {
                         })
                 })
 
-                test("returns a set number of articles if specified a limit", () => {
-                    return request(app).get("/api/articles?limit=2").expect(200)
+                test(`returns a set number of articles if specified a limit,
+                if that limit is greater than total articles, returns all articles`, () => {
+                    return request(app).get("/api/articles?limit=15").expect(200)
                         .then(response => {
-                            expect(response.body.articles).toHaveLength(2)
+                            expect(response.body.articles).toHaveLength(12)
                         })
                 })
 
@@ -510,27 +513,27 @@ describe("/api", () => {
                 test("safe against SQL Injection #1", async() => {
                     await request(app).get("/api/articles?sortBy=DROP TABLE articles").expect(400)
                         .then(response => expect(response.body.msg).toBe("Invalid query"))
-                    await request(app).get("/api/articles?orderBy=DROP TABLE articles").expect(400)
+                    await request(app).get("/api/articles?orderBy=DROP TABLE articles;").expect(400)
                         .then(response => expect(response.body.msg).toBe("Invalid query"))
-                    await request(app).get("/api/articles?topic=DROP TABLE articles").expect(400)
+                    await request(app).get("/api/articles?topic=DROP TABLE articles;").expect(400)
                         .then(response => expect(response.body.msg).toBe("Invalid query"))
-                    await request(app).get("/api/articles?limit=DROP TABLE articles").expect(400)
+                    await request(app).get("/api/articles?limit=DROP TABLE articles;").expect(400)
                         .then(response => expect(response.body.msg).toBe("Invalid query"))
-                    await request(app).get("/api/articles?page=DROP TABLE articles").expect(400)
+                    await request(app).get("/api/articles?page=DROP TABLE articles;").expect(400)
                         .then(response => expect(response.body.msg).toBe("Invalid query"))
                     await db.query("SELECT * FROM articles").then(articles => expect(articles.rows).not.toBe(0))
                 })
 
                 test("safe against SQL injection #2", async() => {
-                    await request(app).get("/api/articles?sortBy='DROP TABLE articles'").expect(400)
+                    await request(app).get("/api/articles?sortBy='DROP TABLE articles;'").expect(400)
                         .then(response => expect(response.body.msg).toBe("Invalid query"))
-                    await request(app).get("/api/articles?orderBy='DROP TABLE articles'").expect(400)
+                    await request(app).get("/api/articles?orderBy='DROP TABLE articles;'").expect(400)
                         .then(response => expect(response.body.msg).toBe("Invalid query"))
-                    await request(app).get("/api/articles?topic='DROP TABLE articles'").expect(400)
+                    await request(app).get("/api/articles?topic='DROP TABLE articles;'").expect(400)
                         .then(response => expect(response.body.msg).toBe("Invalid query"))
-                    await request(app).get("/api/articles?limit='DROP TABLE articles'").expect(400)
+                    await request(app).get("/api/articles?limit='DROP TABLE articles;'").expect(400)
                         .then(response => expect(response.body.msg).toBe("Invalid query"))
-                    await request(app).get("/api/articles?page='DROP TABLE articles'").expect(400)
+                    await request(app).get("/api/articles?page='DROP TABLE articles;'").expect(400)
                         .then(response => expect(response.body.msg).toBe("Invalid query"))
                     await db.query("SELECT * FROM articles").then(articles => expect(articles.rows).not.toBe(0))
                 })
@@ -751,7 +754,7 @@ describe("/api", () => {
 
                     test("safe to SQL Injection #2", () => {
                         return request(app).patch("/api/articles/1; 'DROP TABLE articles;'")
-                            .send({ body: "something;  'DROP TABLE articles'" })
+                            .send({ body: "something;  'DROP TABLE articles;'" })
                             .expect(400)
                             .then(response => {
                                 expect(response.body.msg).toBe("invalid type for key")
@@ -760,7 +763,7 @@ describe("/api", () => {
 
                     test("safe to SQL Injection #3", () => {
                         return request(app).patch("/api/articles/1; ''DROP TABLE articles;''")
-                            .send({ body: "something; ''DROP TABLE articles''", votes: '19; DROP TABLE articles' })
+                            .send({ body: "something; ''DROP TABLE articles''", votes: '19; DROP TABLE articles;' })
                             .expect(400)
                             .then(response => {
                                 expect(response.body.msg).toBe("invalid type for key")
@@ -807,6 +810,7 @@ describe("/api", () => {
                         test("return comments associated with an article", () => {
                             return request(app).get("/api/articles/1/comments").expect(200)
                                 .then(response => {
+                                    expect(response.body.comments).not.toHaveLength(0)
                                     response.body.comments.forEach(comment => {
                                         expect(comment).toMatchObject({
                                             comment_id: expect.any(Number),
@@ -996,6 +1000,7 @@ describe("/api", () => {
                 test("returns all the comments", () => {
                     return request(app).get("/api/comments").expect(200)
                         .then(response => {
+                            expect(response.body.comments).toHaveLength(18)
                             response.body.comments.forEach(comment => {
                                 expect(comment).toMatchObject({
                                     comment_id: expect.any(Number),
