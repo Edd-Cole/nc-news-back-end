@@ -1,6 +1,6 @@
 const db = require('../db/connection.js');
 const request = require("supertest")
-const app = require("../routers/app.js")
+const app = require("../app.js")
 const testData = require('../db/data/test-data/index.js');
 const fs = require("fs/promises")
 const seed = require('../db/seeds/seed.js');
@@ -148,6 +148,20 @@ describe("/api", () => {
                         await db.query("SELECT * FROM articles")
                             .then(response => {
                                 expect(response.rows).not.toHaveLength(0)
+                            })
+                    })
+                })
+            })
+
+            describe.only("/ - DELETE", () => {
+                describe("status 204 - Success: No Content", () => {
+                    test("deletes a topic", async() => {
+                        await request(app).delete("/api/topics/cats")
+                            .expect(204)
+
+                        await db.query("SELECT * FROM topics WHERE slug = cats")
+                            .then(response => {
+                                expect(response.body).toBe(undefined)
                             })
                     })
                 })

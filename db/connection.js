@@ -3,7 +3,7 @@ const path = require('path');
 const ENV = process.env.NODE_ENV || 'development';
 
 require('dotenv').config({
-    path: path.resolve(__dirname, `../.environment-variables/.env.${ENV}`),
+    path: path.resolve(__dirname, `../.env.${ENV}`),
 });
 
 const config =

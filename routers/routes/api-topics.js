@@ -1,5 +1,5 @@
 const apiTopics = require("express").Router();
-const { getTopics, postTopic, patchTopicByID } = require("../controllers/controllers.topics.js")
+const { getTopics, postTopic, patchTopicByID, deleteTopicByID } = require("../controllers/controllers.topics.js")
 
 apiTopics.route("/")
     .get(getTopics)
@@ -7,5 +7,6 @@ apiTopics.route("/")
 
 apiTopics.route("/:slug")
     .patch(patchTopicByID)
+    .delete(deleteTopicByID)
 
 module.exports = apiTopics;
