@@ -33,7 +33,7 @@ const patchTopicByID = (request, response, next) => {
         return next({ code: 400, msg: "cannot change slug" })
     }
     //transferring to models
-    updateTopicByID(slug, invalidSlug, description)
+    updateTopicByID(slug, description)
         .then(topics => {
             if (topics.length === 0) {
                 next({ code: 400, msg: "slug does not exist" })

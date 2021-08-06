@@ -153,19 +153,19 @@ describe("/api", () => {
                 })
             })
 
-            describe.only("/ - DELETE", () => {
-                describe("status 204 - Success: No Content", () => {
-                    test("deletes a topic", async() => {
-                        await request(app).delete("/api/topics/cats")
-                            .expect(204)
+            // describe.only("/ - DELETE", () => {
+            //     describe("status 204 - Success: No Content", () => {
+            //         test("deletes a topic", async() => {
+            //             await request(app).delete("/api/topics/cats")
+            //                 .expect(204)
 
-                        await db.query("SELECT * FROM topics WHERE slug = cats")
-                            .then(response => {
-                                expect(response.body).toBe(undefined)
-                            })
-                    })
-                })
-            })
+            //             await db.query("SELECT * FROM topics WHERE slug = cats")
+            //                 .then(response => {
+            //                     expect(response.body).toBe(undefined)
+            //                 })
+            //         })
+            //     })
+            // })
         })
     })
 
