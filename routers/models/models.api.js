@@ -1,7 +1,7 @@
 const fs = require("fs/promises")
 
 const selectEndpoints = () => {
-    return fs.readFile(`${__dirname}/../endpoints.json`, "utf-8")
+    return fs.readFile(`${__dirname}/../../db/endpoints.json`, "utf-8")
         .then(endpoints => {
             return endpoints;
         })

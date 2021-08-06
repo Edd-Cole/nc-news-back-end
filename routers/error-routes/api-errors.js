@@ -4,7 +4,6 @@ const apiError = (error, request, response, next) => {
     } else if (error.code === 404) {
         response.status(404).send(error)
     } else {
-        console.log("error here <----- here")
         response.sendstatus(500);
     }
 }

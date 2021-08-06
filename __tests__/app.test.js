@@ -12,10 +12,10 @@ afterAll(() => db.end());
 describe("/api", () => {
     describe("/ - GET", () => {
         describe("status 200 - Success", () => {
-            test("returns all available endpoints one can use", () => {
+            test("returns all available endpoints within the project that have been created and built with TDD", () => {
                 return request(app).get("/api/").expect(200)
                     .then(async(response) => {
-                        let endpoints = await fs.readFile(`${__dirname}/../routers/endpoints.json`, "utf8")
+                        let endpoints = await fs.readFile(`${__dirname}/../db/endpoints.json`, "utf8")
                         endpoints = JSON.parse(endpoints)
                         expect(typeof(response.body.endpoints)).toBe("object")
                         expect(response.body.endpoints).toEqual(endpoints)
