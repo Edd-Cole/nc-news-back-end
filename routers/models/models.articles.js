@@ -36,7 +36,7 @@ const selectArticleByID = (article_id) => {
     GROUP BY articles.article_id
     `, [article_id])
         .then(response => {
-            return response.rows;
+            return response.rows[0];
         })
 }
 
@@ -82,7 +82,7 @@ const updateArticleByID = async(article_id, articleInfo) => {
             if (response.rows.length === 0) {
                 return { code: 404, msg: "article does not exist" }
             }
-            return response.rows;
+            return response.rows[0];
         })
 }
 

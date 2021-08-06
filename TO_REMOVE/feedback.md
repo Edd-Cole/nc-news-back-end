@@ -50,7 +50,7 @@ db in utils test, watch for unused variables!
 ## Tests
 
 - [x] Seeding before each test
-- [ ] If asserting inside a `forEach`, also has an assertion to check length is at least > 0
+- [x] If asserting inside a `forEach`, also has an assertion to check length is at least > 0
       not doing this!!
 
 - [ ] Ensure all tests are passing

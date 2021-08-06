@@ -600,7 +600,7 @@ describe("/api", () => {
                     test("returns a specific article", () => {
                         return request(app).get("/api/articles/5").expect(200)
                             .then(response => {
-                                expect(response.body.articles[0]).toMatchObject({
+                                expect(response.body).toMatchObject({
                                     article_id: 5,
                                     title: expect.any(String),
                                     body: expect.any(String),
@@ -638,7 +638,7 @@ describe("/api", () => {
                     test("updates only one part of an article", () => {
                         return request(app).patch("/api/articles/1").send({ title: "Bing" }).expect(200)
                             .then(response => {
-                                expect(response.body.articles[0]).toMatchObject({
+                                expect(response.body).toMatchObject({
                                     article_id: 1,
                                     title: "Bing",
                                     body: expect.any(String),

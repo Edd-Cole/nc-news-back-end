@@ -27,7 +27,7 @@ const getArticleByID = (request, response, next) => {
             if (articles.length === 0) {
                 next({ code: 404, msg: "article_id does not exist" });
             } else {
-                response.status(200).send({ articles })
+                response.status(200).send(articles)
             }
         })
         .catch(error => {
@@ -44,7 +44,7 @@ const patchArticleByID = (request, response, next) => {
             if (articles.code) {
                 return next(articles)
             }
-            response.status(200).send({ articles })
+            response.status(200).send(articles)
         })
         .catch(error => {
             //Handles errors
