@@ -5,33 +5,35 @@ const { formatTopics, formatUsers, formatArticles, formatComments, createRefTabl
 const seed = async(data) => {
     const { articleData, commentData, topicData, userData } = data;
     //Dropping Tables - comments, articles, users & topics, respectively
-    await db.query("DROP TABLE IF EXISTS comments CASCADE;");
-    await db.query("DROP TABLE IF EXISTS articles CASCADE;");
-    await db.query("DROP TABLE IF EXISTS users CASCADE;");
-    await db.query("DROP TABLE IF EXISTS topics CASCADE;");
+    await db.query("DROP TABLE IF EXISTS comments;");
+    await db.query("DROP TABLE IF EXISTS articles;");
+    await db.query("DROP TABLE IF EXISTS users;");
+    await db.query("DROP TABLE IF EXISTS topics;");
     //Table Creation - topics, users, articles & comments, respectively
-    await db.query(`CREATE TABLE topics (
+    await Promise.all([
+        db.query(`CREATE TABLE topics (
         slug VARCHAR(63) PRIMARY KEY,
         description TEXT NOT NULL
-    );`);
-    await db.query(`CREATE TABLE users (
+    );`),
+        db.query(`CREATE TABLE users (
         username VARCHAR(40)PRIMARY KEY,
         avatar_url VARCHAR,
         name VARCHAR(60) NOT NULL
-    );`);
+    );`)
+    ])
     await db.query(`CREATE TABLE articles (
                 article_id SERIAL PRIMARY KEY,
                 title VARCHAR(127) NOT NULL,
                 body TEXT,
                 votes INT DEFAULT 0,
-                topic VARCHAR(63) REFERENCES topics (slug) NOT NULL,
-                author VARCHAR(40) REFERENCES users (username) NOT NULL,
+                topic VARCHAR(63) REFERENCES topics (slug) ON DELETE CASCADE NOT NULL,
+                author VARCHAR(40) REFERENCES users (username) ON DELETE CASCADE NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );`);
     await db.query(`CREATE TABLE comments (
                     comment_id SERIAL PRIMARY KEY,
-                    author VARCHAR(40) REFERENCES users (username) NOT NULL,
-                    article_id INT REFERENCES articles (article_id) NOT NULL,
+                    author VARCHAR(40) REFERENCES users (username) ON DELETE CASCADE NOT NULL,
+                    article_id INT REFERENCES articles (article_id) ON DELETE CASCADE NOT NULL,
                     votes INT DEFAULT 0,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     body TEXT NOT NULL
