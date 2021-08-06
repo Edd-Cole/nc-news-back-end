@@ -1,21 +1,14 @@
-const formatTopics = (topics) => {
-    return topics.map(topic => {
-        return [topic.slug, topic.description]
+const formatArray = (tableName, desiredKeys) => {
+    return tableName.map(table => {
+        const info = [table[desiredKeys[0]],
+            table[desiredKeys[1]],
+            table[desiredKeys[2]],
+            table[desiredKeys[3]],
+            table[desiredKeys[4]],
+            table[desiredKeys[5]]
+        ]
+        return info.filter(i => i !== undefined)
     })
-}
-
-const formatUsers = (users) => {
-    return users.map((user) => {
-        return [user.username, user.avatar_url, user.name]
-    })
-}
-
-const formatArticles = (articles) => {
-    return articles.map(article => {
-        const { title, body, votes, topic, author, created_at } = article;
-        return [title, body, votes, topic, author, created_at];
-    })
-
 }
 
 const createRefTable = (reference, key, value) => {
@@ -38,11 +31,32 @@ const replaceBelongsToWithArticleID = (comments, refTable) => {
     return newComments;
 }
 
-const formatComments = (comments) => {
-    return comments.map(comment => {
-        const { body, article_id, created_by, votes, created_at } = comment
-        return [created_by, article_id, votes, created_at, body]
-    })
-}
 
-module.exports = { formatTopics, formatUsers, createRefTable, formatArticles, formatComments, replaceBelongsToWithArticleID }
+
+// const formatTopics = (topics) => {
+//     return topics.map(topic => {
+//         return [topic.slug, topic.description]
+//     })
+// }
+
+// const formatUsers = (users) => {
+//     return users.map((user) => {
+//         return [user.username, user.avatar_url, user.name]
+//     })
+// }
+
+// const formatArticles = (articles) => {
+//     return articles.map(article => {
+//         const { title, body, votes, topic, author, created_at } = article;
+//         return [title, body, votes, topic, author, created_at];
+//     })
+
+// }
+// const formatComments = (comments) => {
+//     return comments.map(comment => {
+//         const { body, article_id, created_by, votes, created_at } = comment
+//         return [created_by, article_id, votes, created_at, body]
+//     })
+// }
+
+module.exports = { createRefTable, replaceBelongsToWithArticleID, formatArray }

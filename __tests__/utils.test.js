@@ -1,72 +1,42 @@
-const { formatTopics, formatUsers, formatArticles, createRefTable, formatComments, replaceBelongsToWithArticleID } = require("../db/utils/data-manipulation.js");
+const { createRefTable, replaceBelongsToWithArticleID, formatArray } = require("../db/utils/data-manipulation.js");
 const db = require("../db/connection.js")
 
 describe("Utility functions db/utils/data-manip", () => {
-    describe("formatTopics()", () => {
-        test("formats the topics into the [[s, d], [s, d], [s, d]] shape", () => {
-            const topics = [{
-                    description: 'The man, the Mitch, the legend',
-                    slug: 'mitch'
-                },
-                {
-                    description: 'Not dogs',
-                    slug: 'cats'
-                },
-                {
-                    description: 'what books are made of',
-                    slug: 'paper'
-                }
-            ]
-
-            expect(formatTopics(topics)).toEqual([
-                ["mitch", "The man, the Mitch, the legend"],
-                ["cats", "Not dogs"],
-                ["paper", "what books are made of"]
-            ])
-        })
-
-        test("creates a new array when invoked", () => {
+    describe("formatArray()", () => {
+        test("formatArray will create a new array from the original array of topic objects passed", () => {
             const topics = [{
                 description: 'The man, the Mitch, the legend',
                 slug: 'mitch'
             }]
-            const newTopics = formatTopics(topics);
+            const newTopics = formatArray(topics, ["slug", "description"]);
             expect(newTopics).not.toBe(topics);
         })
 
-        test("creates new nested arrays for each topic", () => {
-            const topics = [{
-                    description: 'The man, the Mitch, the legend',
-                    slug: 'mitch'
-                },
-                {
-                    description: 'Not dogs',
-                    slug: 'cats'
-                },
-                {
-                    description: 'what books are made of',
-                    slug: 'paper'
-                }
-            ]
-            const newTopics = formatTopics(topics);
-            newTopics.forEach((topic, index) => {
-                expect(topic).not.toBe(topics[index])
-            })
-        })
-
-        test("does not mutate original array", () => {
+        test("formatArray will not mutate the original array when invoked with an array of topic objects as an argument", () => {
             const topics = [{
                 description: 'The man, the Mitch, the legend',
                 slug: 'mitch'
             }]
-            formatTopics(topics);
+            formatArray(topics, ["slug", "description"]);
             expect(topics).toEqual([{
                 description: 'The man, the Mitch, the legend',
                 slug: 'mitch'
             }])
         })
 
-        test("does not mutate objects inside topics", () => {
+        test(`formats the array of table objects into a 2 level deep array 
+        into the order specified with the second argument of the function,
+        handles an array with a single object`, () => {
+            const topics = [{
+                description: 'The man, the Mitch, the legend',
+                slug: 'mitch'
+            }]
+            expect(formatArray(topics, ["slug", "description"])).toEqual([
+                ["mitch", "The man, the Mitch, the legend"]
+            ]);
+        })
+
+        test("formats the array of topic objects into a nested array of the shape [[s, d], [s, d], [s, d]] where s is slug, d is description", () => {
             const topics = [{
                     description: 'The man, the Mitch, the legend',
                     slug: 'mitch'
@@ -80,134 +50,14 @@ describe("Utility functions db/utils/data-manip", () => {
                     slug: 'paper'
                 }
             ]
-            const topics2 = topics.map(topic => {
-                return {...topic };
-            })
-            formatTopics(topics);
-            topics.forEach((topic, index) => {
-                expect(topic).toEqual(topics2[index])
-            })
-        })
-    })
-
-    describe("formatUsers()", () => {
-        test("creates an array of arrays with the information in the correct order", () => {
-            const users = [{
-                    username: 'butter_bridge',
-                    name: 'jonny',
-                    avatar_url: 'https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg'
-                },
-                {
-                    username: 'icellusedkars',
-                    name: 'sam',
-                    avatar_url: 'https://avatars2.githubusercontent.com/u/24604688?s=460&v=4'
-                },
-                {
-                    username: 'rogersop',
-                    name: 'paul',
-                    avatar_url: 'https://avatars2.githubusercontent.com/u/24394918?s=400&v=4'
-                },
-                {
-                    username: 'lurker',
-                    name: 'do_nothing',
-                    avatar_url: 'https://www.golenbock.com/wp-content/uploads/2015/01/placeholder-user.png'
-                }
-            ];
-            const newUsers = formatUsers(users)
-            expect(newUsers).toEqual([
-                ["butter_bridge", 'https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg', "jonny"],
-                ["icellusedkars", 'https://avatars2.githubusercontent.com/u/24604688?s=460&v=4', "sam"],
-                ["rogersop", 'https://avatars2.githubusercontent.com/u/24394918?s=400&v=4', "paul"],
-                ["lurker", 'https://www.golenbock.com/wp-content/uploads/2015/01/placeholder-user.png', "do_nothing"]
+            expect(formatArray(topics, ["slug", "description"])).toEqual([
+                ["mitch", "The man, the Mitch, the legend"],
+                ["cats", "Not dogs"],
+                ["paper", "what books are made of"]
             ])
         })
 
-        test("creates a new array when invoked", () => {
-            const users = [{
-                username: 'butter_bridge',
-                name: 'jonny',
-                avatar_url: 'https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg'
-            }]
-            const newUsers = formatUsers(users);
-            expect(newUsers).not.toBe(users);
-        })
-
-        test("creates new inner arrays when invoked", () => {
-            const users = [{
-                    username: 'butter_bridge',
-                    name: 'jonny',
-                    avatar_url: 'https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg'
-                },
-                {
-                    username: 'icellusedkars',
-                    name: 'sam',
-                    avatar_url: 'https://avatars2.githubusercontent.com/u/24604688?s=460&v=4'
-                },
-                {
-                    username: 'rogersop',
-                    name: 'paul',
-                    avatar_url: 'https://avatars2.githubusercontent.com/u/24394918?s=400&v=4'
-                },
-                {
-                    username: 'lurker',
-                    name: 'do_nothing',
-                    avatar_url: 'https://www.golenbock.com/wp-content/uploads/2015/01/placeholder-user.png'
-                }
-            ];
-            const newUsers = formatUsers(users);
-            users.forEach((user, index) => {
-                expect(user).not.toBe(newUsers[index])
-            })
-        })
-
-        test("does not mutate original array", () => {
-            const users = [{
-                username: 'butter_bridge',
-                name: 'jonny',
-                avatar_url: 'https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg'
-            }]
-            formatUsers(users);
-            expect(users).toEqual([{
-                username: 'butter_bridge',
-                name: 'jonny',
-                avatar_url: 'https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg'
-            }])
-        })
-
-        test("does not mutate objects in array", () => {
-            const users = [{
-                    username: 'butter_bridge',
-                    name: 'jonny',
-                    avatar_url: 'https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg'
-                },
-                {
-                    username: 'icellusedkars',
-                    name: 'sam',
-                    avatar_url: 'https://avatars2.githubusercontent.com/u/24604688?s=460&v=4'
-                },
-                {
-                    username: 'rogersop',
-                    name: 'paul',
-                    avatar_url: 'https://avatars2.githubusercontent.com/u/24394918?s=400&v=4'
-                },
-                {
-                    username: 'lurker',
-                    name: 'do_nothing',
-                    avatar_url: 'https://www.golenbock.com/wp-content/uploads/2015/01/placeholder-user.png'
-                }
-            ];
-            const newUsers = users.map(user => {
-                return {...user };
-            })
-            formatUsers(users);
-            users.forEach((user, index) => {
-                expect(user).toEqual(newUsers[index])
-            })
-        })
-    })
-
-    describe("formatArticles()", () => {
-        test("creates an array of arrays with the info in the correct order", () => {
+        test("formats the array for up to 6 keys that we wish to organise into a nested array", () => {
             const articles = [{
                 title: 'Living in the shadow of a great man',
                 topic: 'mitch',
@@ -230,83 +80,11 @@ describe("Utility functions db/utils/data-manip", () => {
                 created_at: new Date(1596464040000),
                 votes: 0
             }]
-            expect(formatArticles(articles)).toEqual([
+            expect(formatArray(articles, ["title", "body", "votes", "topic", "author", "created_at"])).toEqual([
                 ["Living in the shadow of a great man", 'I find this existence challenging', 100, 'mitch', 'butter_bridge', new Date(1594329060000)],
                 ['Eight pug gifs that remind me of mitch', 'some gifs', 0, 'mitch', 'icellusedkars', new Date(1604394720000)],
                 ['UNCOVERED: catspiracy to bring down democracy', 'Bastet walks amongst us, and the cats are taking arms!', 0, "cats", 'rogersop', new Date(1596464040000)]
             ])
-        })
-
-        test("creates a new array when invoked", () => {
-            const articles = [];
-            expect(formatArticles(articles)).not.toBe(articles);
-        })
-
-        test("creates new inner array when invoked", () => {
-            const articles = [{
-                title: 'Living in the shadow of a great man',
-                topic: 'mitch',
-                author: 'butter_bridge',
-                body: 'I find this existence challenging',
-                created_at: new Date(1594329060000),
-                votes: 100
-            }, {
-                title: 'Eight pug gifs that remind me of mitch',
-                topic: 'mitch',
-                author: 'icellusedkars',
-                body: 'some gifs',
-                created_at: new Date(1604394720000),
-                votes: 0
-            }, {
-                title: 'UNCOVERED: catspiracy to bring down democracy',
-                topic: 'cats',
-                author: 'rogersop',
-                body: 'Bastet walks amongst us, and the cats are taking arms!',
-                created_at: new Date(1596464040000),
-                votes: 0
-            }]
-            const newArticles = formatArticles(articles)
-            newArticles.forEach((article, index) => {
-                expect(article).not.toBe(articles[index])
-            })
-        })
-
-        test("does not mutate original array", () => {
-            const articles = [];
-            formatArticles(articles)
-            expect(articles).toEqual([]);
-        })
-
-        test("does not mutate objects in original array", () => {
-            const articles = [{
-                title: 'Living in the shadow of a great man',
-                topic: 'mitch',
-                author: 'butter_bridge',
-                body: 'I find this existence challenging',
-                created_at: new Date(1594329060000),
-                votes: 100
-            }, {
-                title: 'Eight pug gifs that remind me of mitch',
-                topic: 'mitch',
-                author: 'icellusedkars',
-                body: 'some gifs',
-                created_at: new Date(1604394720000),
-                votes: 0
-            }, {
-                title: 'UNCOVERED: catspiracy to bring down democracy',
-                topic: 'cats',
-                author: 'rogersop',
-                body: 'Bastet walks amongst us, and the cats are taking arms!',
-                created_at: new Date(1596464040000),
-                votes: 0
-            }];
-            const newArticles = articles.map(article => {
-                return {...article }
-            })
-            formatArticles(articles);
-            articles.forEach((article, index) => {
-                expect(article).toEqual(newArticles[index])
-            })
         })
     })
 
@@ -315,73 +93,56 @@ describe("Utility functions db/utils/data-manip", () => {
             const input = [{ name: "Edd" }]
             expect(() => createRefTable(input)).toThrow(Error);
         })
-        test('returns an empty object, when passed an empty array', () => {
-            const input = [];
-            const actual = createRefTable(input, "phone", "name");
-            const expected = {};
-            expect(actual).toEqual(expected);
-        });
 
-        test("createRefTable takes 2 additional string arguments that will set as the key-value pair for the reference book", () => {
-            const people = [{ name: "Edd", phoneNumber: "0123456789" }, { name: "Bill", phoneNumber: "07123456789" }];
-            expect(createRefTable(people, "name", "phoneNumber")).toEqual({ "Edd": "0123456789", "Bill": "07123456789" })
-            const songs = [{
-                    track: '11:11',
-                    article_id: 'Dinosaur Pile-Up',
-                    releaseYear: 2015,
-                    album: 'Eleven Eleven'
-                },
-                {
-                    track: 'Powder Blue',
-                    article_id: 'Elbow',
-                    releaseYear: 2001,
-                    album: 'Asleep In The Back'
-                }
-            ];
-            expect(createRefTable(songs, "track", "article_id")).toEqual({ "11:11": "Dinosaur Pile-Up", "Powder Blue": "Elbow" });
+        test("returns an empty object when passed an empty array", () => {
+            expect(createRefTable([], "name", "number")).toEqual({})
         })
 
-        test("does not mutate original array", () => {
-            const people = [{ name: "Edd", phoneNumber: "0123456789" }, { name: "Bill", phoneNumber: "07123456789" }];
-            createRefTable(people, "phone", "name")
-            expect(people).toEqual([{ name: "Edd", phoneNumber: "0123456789" }, { name: "Bill", phoneNumber: "07123456789" }])
+        test("the reference object is assigned the memory reference from one of the objects within the original array of objects", () => {
+            const input = [{ name: "Tom", house: "17 chestnut road" }]
+            expect(createRefTable(input, "name", "house")).not.toBe(input[0])
         })
 
-        test("creates a new array", () => {
-            const people = [{ name: "Edd", phoneNumber: "0123456789" }, { name: "Bill", phoneNumber: "07123456789" }];
-            expect(createRefTable(people, "phone", "name")).not.toBe(people)
+        test("can exchange pair up the two given keys (key1, key2) from an array of objects and create a new object where value1 is key and value2 is value", () => {
+            const input = [{ name: "Edd", number: "0123456789" }]
+            const output = { "Edd": "0123456789" }
+            expect(createRefTable(input, "name", "number")).toEqual(output)
         })
 
-        test("creates new objects of array", () => {
-            const people = [{ name: "Edd", phoneNumber: "0123456789" }, { name: "Bill", phoneNumber: "07123456789" }];
-            const newPeople = createRefTable(people, "phone", "name");
-            expect(newPeople[0]).not.toBe(people[0]);
-            expect(newPeople[1]).not.toBe(people[1]);
-        });
-
-        test("does not mutate original array objects", () => {
-            const people = [{ name: "Edd", phoneNumber: "0123456789" }, { name: "Bill", phoneNumber: "07123456789" }];
-            createRefTable(people, "phone", "name")
-            expect(people[0]).toEqual({ name: "Edd", phoneNumber: "0123456789" })
-            expect(people[1]).toEqual({ name: "Bill", phoneNumber: "07123456789" })
+        test("can create a reference object for an array with multiple object nested inside", () => {
+            const input = [{ id: 1, name: "Edd" }, { id: 2, name: "Arthur" }, { id: 3, name: "Harry" }, { id: 4, name: "Bill" }]
+            const output = { 1: "Edd", 2: "Arthur", 3: "Harry", 4: "Bill" }
+            expect(createRefTable(input, "id", "name")).toEqual(output)
         })
 
+        test("Original array of objects is not mutated when it is used as an argument for createRefTable", () => {
+            const input = [{ food: "pizza", day: "monday" }, { food: "lasagne", day: "thursday" }]
+            createRefTable(input, "food", "day")
+            expect(input).toEqual([{ food: "pizza", day: "monday" }, { food: "lasagne", day: "thursday" }])
+        })
     });
 
     describe('replaceBelongsToWithArticleID()', () => {
-        test("replaces title with article_id", () => {
+        test(`can replace a key-value pair  in an array of 1 object with the associated value in the given reference object that we provide,
+         and replace the key with 'belongs_to'`, () => {
+            const refTable = { "bing": 1 }
+            const comments = [{ belongs_to: "bing" }]
+            expect(replaceBelongsToWithArticleID(comments, refTable)).toEqual([{ article_id: 1 }])
+        })
+
+        test("can replicate the process for an array with more than one object", () => {
             const refTable = { "bing": 1, "bong": 2 };
             const comments = [{ belongs_to: "bing" }, { belongs_to: "bong" }];
             expect(replaceBelongsToWithArticleID(comments, refTable)).toEqual([{ article_id: 1 }, { article_id: 2 }])
         })
 
-        test("creates a new array", () => {
+        test("creates a new array when the function is invoked", () => {
             const refTable = { "bing": 1, "bong": 2 };
             const comments = [{ belongs_to: "bing" }, { belongs_to: "bong" }];
             expect(replaceBelongsToWithArticleID(comments, refTable)).not.toBe(comments)
         })
 
-        test("creates new objects", () => {
+        test("creates new objects that do not macth the memory reference of the original objects in the array of objects", () => {
             const refTable = { "bing": 1, "bong": 2 };
             const comments = [{ belongs_to: "bing" }, { belongs_to: "bong" }];
             const newArticles = replaceBelongsToWithArticleID(comments, refTable);
@@ -390,125 +151,11 @@ describe("Utility functions db/utils/data-manip", () => {
             })
         })
 
-        test("does not mutate original array", () => {
+        test("does not mutate original array and original objects when function is invoked", () => {
             const refTable = { "bing": 1, "bong": 2 };
             const comments = [{ belongs_to: "bing" }, { belongs_to: "bong" }];
             replaceBelongsToWithArticleID(comments, refTable);
             expect(comments).toEqual([{ belongs_to: "bing" }, { belongs_to: "bong" }])
-        })
-
-        test("does not mutate objects", () => {
-            const refTable = { "bing": 1, "bong": 2 };
-            const comments = [{ belongs_to: "bing" }, { belongs_to: "bong" }];
-            const newArticles = comments.map(article => { return {...article } })
-            replaceBelongsToWithArticleID(comments, refTable);
-            newArticles.forEach((article, index) => {
-                expect(article).toEqual(comments[index])
-            })
-        })
-    })
-
-    describe("formatComments()", () => {
-        test("creates an array of arrays with the data properly formatted", () => {
-            const comments = [{
-                    body: "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
-                    article_id: 1,
-                    created_by: 'butter_bridge',
-                    votes: 16,
-                    created_at: new Date(1586179020000)
-                },
-                {
-                    body: 'The beautiful thing about treasure is that it exists. Got to find out what kind of sheets these are; not cotton, not rayon, silky.',
-                    article_id: 2,
-                    created_by: 'butter_bridge',
-                    votes: 14,
-                    created_at: new Date(1604113380000)
-                },
-                {
-                    body: ' I carry a log — yes. Is it funny to you? It is not to me.',
-                    article_id: 3,
-                    created_by: 'icellusedkars',
-                    votes: -100,
-                    created_at: new Date(1582459260000)
-                },
-            ];
-            const newComments = formatComments(comments);
-            expect(newComments).toEqual([
-                ['butter_bridge', 1, 16, new Date(1586179020000), "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!"],
-                ["butter_bridge", 2, 14, new Date(1604113380000), 'The beautiful thing about treasure is that it exists. Got to find out what kind of sheets these are; not cotton, not rayon, silky.'],
-                ['icellusedkars', 3, -100, new Date(1582459260000), ' I carry a log — yes. Is it funny to you? It is not to me.', ]
-            ])
-        })
-
-        test("creates a new array", () => {
-            const comments = [];
-            const newComments = formatComments(comments);
-            expect(newComments).not.toBe(comments)
-        })
-
-        test("creates new objects", () => {
-            const comments = [{
-                    body: "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
-                    article_id: 1,
-                    created_by: 'butter_bridge',
-                    votes: 16,
-                    created_at: new Date(1586179020000)
-                },
-                {
-                    body: 'The beautiful thing about treasure is that it exists. Got to find out what kind of sheets these are; not cotton, not rayon, silky.',
-                    article_id: 2,
-                    created_by: 'butter_bridge',
-                    votes: 14,
-                    created_at: new Date(1604113380000)
-                },
-                {
-                    body: ' I carry a log — yes. Is it funny to you? It is not to me.',
-                    article_id: 3,
-                    created_by: 'icellusedkars',
-                    votes: -100,
-                    created_at: new Date(1582459260000)
-                },
-            ];
-            const newComments = formatComments(comments);
-            newComments.forEach((comment, index) => {
-                expect(comment).not.toBe(comments[index])
-            })
-        })
-
-        test("does not mutate original array", () => {
-            const comments = [];
-            formatComments(comments)
-            expect(comments).toEqual([])
-        })
-
-        test("does not mutate objects in original array", () => {
-            const comments = [{
-                    body: "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
-                    article_id: 1,
-                    created_by: 'butter_bridge',
-                    votes: 16,
-                    created_at: new Date(1586179020000)
-                },
-                {
-                    body: 'The beautiful thing about treasure is that it exists. Got to find out what kind of sheets these are; not cotton, not rayon, silky.',
-                    article_id: 2,
-                    created_by: 'butter_bridge',
-                    votes: 14,
-                    created_at: new Date(1604113380000)
-                },
-                {
-                    body: ' I carry a log — yes. Is it funny to you? It is not to me.',
-                    article_id: 3,
-                    created_by: 'icellusedkars',
-                    votes: -100,
-                    created_at: new Date(1582459260000)
-                },
-            ];
-            const newComments = comments.map(comment => { return {...comment } })
-            formatComments(comments);
-            newComments.forEach((comment, index) => {
-                expect(comment).toEqual(comments[index])
-            })
         })
     })
 })

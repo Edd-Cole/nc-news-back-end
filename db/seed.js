@@ -1,6 +1,6 @@
 const db = require("./connection.js")
 const format = require("pg-format")
-const { formatTopics, formatUsers, formatArticles, formatComments, createRefTable, replaceBelongsToWithArticleID } = require("./utils/data-manipulation.js")
+const { createRefTable, replaceBelongsToWithArticleID, formatArray } = require("./utils/data-manipulation.js")
 
 const seed = async(data) => {
     const { articleData, commentData, topicData, userData } = data;
@@ -39,23 +39,23 @@ const seed = async(data) => {
                     body TEXT NOT NULL
                 );`);
     //Data Insertion - Data
-    const topicsArray = formatTopics(topicData);
+    const topicsArray = formatArray(topicData, ["slug", "description"]);
     const topicsStringFormat = format(`INSERT INTO topics
                     (slug, description)
                 VALUES
                     %L;`, topicsArray);
     await db.query(topicsStringFormat);
     //Data Insertion - Users
-    const usersArray = formatUsers(userData)
+    const usersArray = formatArray(userData, ["username", "avatar_url", "name"])
     const usersStringFormat = format(`INSERT INTO users 
                 (username, avatar_url, name)
             VALUES
                 %L;`, usersArray);
     await db.query(usersStringFormat);
     //Data Insertion - Articles
-    const articlesArray = formatArticles(articleData)
+    const articlesArray = formatArray(articleData, ["title", "body", "votes", "topic", "author", "created_at"])
     const articlesStringFormat = format(`INSERT INTO articles
-                (title, body, votes,topic, author, created_at)
+                (title, body, votes, topic, author, created_at)
             VALUES
                 %L;`, articlesArray);
     await db.query(articlesStringFormat);
@@ -63,7 +63,7 @@ const seed = async(data) => {
     const articleInformation = await db.query("SELECT * FROM articles;")
     const articleRefTable = createRefTable(articleInformation.rows, "title", "article_id");
     const preparedCommentData = replaceBelongsToWithArticleID(commentData, articleRefTable);
-    const commentsArray = formatComments(preparedCommentData);
+    const commentsArray = formatArray(preparedCommentData, ["created_by", "article_id", "votes", "created_at", "body"]);
     const commentsStringFormat = format(`INSERT INTO comments
                 (author, article_id, votes, created_at, body)
             VALUES
