@@ -3,7 +3,7 @@ const request = require("supertest")
 const app = require("../app.js")
 const testData = require('../db/data/test-data/index.js');
 const fs = require("fs/promises")
-const seed = require('../db/seeds/seed.js');
+const seed = require('../db/seed.js');
 require("jest-sorted")
 
 beforeEach(() => seed(testData));
@@ -557,7 +557,6 @@ describe("/api", () => {
                                 author: "lurker",
                                 votes: 0,
                                 created_at: expect.anything(),
-                                created_on: expect.anything()
                             })
                         })
                     await db.query("SELECT * FROM articles ORDER BY article_id DESC LIMIT 1;")
