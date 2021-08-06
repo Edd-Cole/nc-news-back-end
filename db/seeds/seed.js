@@ -11,16 +11,16 @@ const seed = async(data) => {
     await db.query("DROP TABLE IF EXISTS topics CASCADE;");
     //Table Creation - topics, users, articles & comments, respectively
     await db.query(`CREATE TABLE topics (
-        slug VARCHAR(63) PRIMARY KEY NOT NULL,
+        slug VARCHAR(63) PRIMARY KEY,
         description TEXT NOT NULL
     );`);
     await db.query(`CREATE TABLE users (
-        username VARCHAR(40)PRIMARY KEY NOT NULL,
+        username VARCHAR(40)PRIMARY KEY,
         avatar_url VARCHAR,
         name VARCHAR(60) NOT NULL
     )`)
     await db.query(`CREATE TABLE articles (
-                article_id SERIAL NOT NULL PRIMARY KEY,
+                article_id SERIAL PRIMARY KEY,
                 title VARCHAR(127) NOT NULL,
                 body TEXT,
                 votes INT NOT NULL DEFAULT 0,
@@ -30,7 +30,7 @@ const seed = async(data) => {
                 created_on TIME DEFAULT CURRENT_TIME
             )`)
     await db.query(`CREATE TABLE comments (
-                comment_id SERIAL PRIMARY KEY NOT NULL,
+                comment_id SERIAL PRIMARY KEY,
                 author VARCHAR(40) REFERENCES users (username) NOT NULL,
                 article_id INT REFERENCES articles (article_id) NOT NULL,
                 votes INT DEFAULT 0 NOT NULL,
