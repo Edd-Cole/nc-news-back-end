@@ -358,10 +358,10 @@ describe("/api", () => {
     describe("/articles", () => {
         describe("/ - GET", () => {
             describe("status 200 - Success", () => {
-                test("returns all the articles, default limit of 10 per page", () => {
+                test("returns articles", () => {
                     return request(app).get("/api/articles").expect(200)
                         .then(response => {
-                            expect(response.body.articles).toHaveLength(10)
+                            expect(response.body.articles).not.toHaveLength(0)
                             response.body.articles.forEach(article => {
                                 expect(article).toMatchObject({
                                     article_id: expect.any(Number),
@@ -378,7 +378,7 @@ describe("/api", () => {
                 })
 
                 test("returns the articles sorted by the query", () => {
-                    return request(app).get("/api/articles?sortBy=topic").expect(200)
+                    return request(app).get("/api/articles?sort_by=topic").expect(200)
                         .then(response => {
                             expect(response.body.articles).not.toHaveLength(0)
                             response.body.articles.forEach(article => {
@@ -398,7 +398,7 @@ describe("/api", () => {
                 })
 
                 test("returns the articles ordered using orderBy query", () => {
-                    return request(app).get("/api/articles?orderBy=DESC").expect(200)
+                    return request(app).get("/api/articles?order_by=ASC").expect(200)
                         .then(response => {
                             expect(response.body.articles).not.toHaveLength(0);
                             response.body.articles.forEach(article => {
@@ -413,7 +413,7 @@ describe("/api", () => {
                                     comment_count: expect.any(String)
                                 })
                             })
-                            expect(response.body.articles).toBeSortedBy("article_id", { descending: true })
+                            expect(response.body.articles).toBeSortedBy("created_at")
                         })
                 })
 
@@ -437,7 +437,7 @@ describe("/api", () => {
                 })
 
                 test("returns a list of articles when all queries used", () => {
-                    return request(app).get("/api/articles?sortBy=title&orderBy=desc&topic=mitch").expect(200)
+                    return request(app).get("/api/articles?sort_by=title&order_by=desc&topic=mitch").expect(200)
                         .then(response => {
                             expect(response.body.articles).not.toHaveLength(0)
                             response.body.articles.forEach(article => {
@@ -467,75 +467,78 @@ describe("/api", () => {
                 test("returns a set number of articles from the start of a page", () => {
                     return request(app).get("/api/articles?limit=2&page=2").expect(200)
                         .then(response => {
-                            expect(response.body.articles[0].article_id).toBe(3)
-                            expect(response.body.articles[1].article_id).toBe(4)
+                            expect(response.body.articles[0].article_id).toBe(2)
+                            expect(response.body.articles[1].article_id).toBe(12)
                         })
                 })
 
+                test("default sort, order, limit and page of the get request are created_by, descending, 10, 1, respectively", () => {
+                    return request(app).get("/api/articles?").expect(200)
+                        .then(response => {
+                            expect(response.body.articles).toHaveLength(10)
+                            expect(response.body.articles).toBeSortedBy("created_at", { descending: true })
+                            expect(response.body.articles[0].article_id).toBe(3)
+                            expect(response.body.articles[9].article_id).toBe(8)
+                            response.body.articles.forEach(article => {
+                                expect(article).toMatchObject({
+                                    article_id: expect.any(Number),
+                                    title: expect.any(String),
+                                    body: expect.any(String),
+                                    votes: expect.any(Number),
+                                    topic: expect.any(String),
+                                    author: expect.any(String),
+                                    created_at: expect.anything(),
+                                    comment_count: expect.any(String)
+                                })
+                            })
+                        })
+                })
+
+                test("returns an empty array of articles when a topic query is valid but has no articles associated with it", () => {
+                    return request(app).get("/api/articles?topic=paper").expect(200)
+                        .then(response => {
+                            expect(response.body.articles).toEqual([])
+                        })
+                })
             })
 
             describe("status 400 - Bad Request", () => {
-                test("rejects when passed invalid queries - sortBy", () => {
-                    return request(app).get("/api/articles?sortBy=Bingo").expect(400)
+                test("rejects when passed invalid queries - sort_by", () => {
+                    return request(app).get("/api/articles?sort_by=Bingo").expect(400)
                         .then(response => {
+                            console.log(response.body)
                             expect(response.body.msg).toBe("Invalid query")
                         })
                 })
 
-                test("rejects when passed invalid queries - orderBy", () => {
-                    return request(app).get("/api/articles?orderBy=Bingo").expect(400)
-                        .then(response => {
-                            expect(response.body.msg).toBe("Invalid query")
-                        })
-                })
-
-                test("rejects when passed invalid queries - topics", () => {
-                    return request(app).get("/api/articles?topic=Bingo").expect(400)
+                test("rejects when passed invalid queries - order_by", () => {
+                    return request(app).get("/api/articles?order_by=Bingo").expect(400)
                         .then(response => {
                             expect(response.body.msg).toBe("Invalid query")
                         })
                 })
 
                 test("rejects when passed invalid queries - limit", () => {
-                    return request(app).get("/api/articles?topic=Bingo").expect(400)
+                    return request(app).get("/api/articles?limit=Bingo").expect(400)
                         .then(response => {
                             expect(response.body.msg).toBe("Invalid query")
                         })
                 })
 
                 test("rejects when passed invalid queries - page", () => {
-                    return request(app).get("/api/articles?topic=Bingo").expect(400)
+                    return request(app).get("/api/articles?page=Bingo").expect(400)
                         .then(response => {
                             expect(response.body.msg).toBe("Invalid query")
                         })
                 })
+            })
 
-                test("safe against SQL Injection #1", async() => {
-                    await request(app).get("/api/articles?sortBy=DROP TABLE articles").expect(400)
-                        .then(response => expect(response.body.msg).toBe("Invalid query"))
-                    await request(app).get("/api/articles?orderBy=DROP TABLE articles;").expect(400)
-                        .then(response => expect(response.body.msg).toBe("Invalid query"))
-                    await request(app).get("/api/articles?topic=DROP TABLE articles;").expect(400)
-                        .then(response => expect(response.body.msg).toBe("Invalid query"))
-                    await request(app).get("/api/articles?limit=DROP TABLE articles;").expect(400)
-                        .then(response => expect(response.body.msg).toBe("Invalid query"))
-                    await request(app).get("/api/articles?page=DROP TABLE articles;").expect(400)
-                        .then(response => expect(response.body.msg).toBe("Invalid query"))
-                    await db.query("SELECT * FROM articles").then(articles => expect(articles.rows).not.toBe(0))
-                })
-
-                test("safe against SQL injection #2", async() => {
-                    await request(app).get("/api/articles?sortBy='DROP TABLE articles;'").expect(400)
-                        .then(response => expect(response.body.msg).toBe("Invalid query"))
-                    await request(app).get("/api/articles?orderBy='DROP TABLE articles;'").expect(400)
-                        .then(response => expect(response.body.msg).toBe("Invalid query"))
-                    await request(app).get("/api/articles?topic='DROP TABLE articles;'").expect(400)
-                        .then(response => expect(response.body.msg).toBe("Invalid query"))
-                    await request(app).get("/api/articles?limit='DROP TABLE articles;'").expect(400)
-                        .then(response => expect(response.body.msg).toBe("Invalid query"))
-                    await request(app).get("/api/articles?page='DROP TABLE articles;'").expect(400)
-                        .then(response => expect(response.body.msg).toBe("Invalid query"))
-                    await db.query("SELECT * FROM articles").then(articles => expect(articles.rows).not.toBe(0))
+            describe("status 404 - Page Not Found", () => {
+                test("rejects when passed invalid queries - topics", () => {
+                    return request(app).get("/api/articles?topic=Bingo").expect(404)
+                        .then(response => {
+                            expect(response.body.msg).toBe("Invalid query")
+                        })
                 })
             })
         })
@@ -635,147 +638,47 @@ describe("/api", () => {
 
             describe("/ - PATCH", () => {
                 describe("status 200 - Success", () => {
-                    test("updates only one part of an article", () => {
-                        return request(app).patch("/api/articles/1").send({ title: "Bing" }).expect(200)
-                            .then(response => {
-                                expect(response.body).toMatchObject({
-                                    article_id: 1,
-                                    title: "Bing",
-                                    body: expect.any(String),
-                                    votes: expect.any(Number),
-                                    topic: expect.any(String),
-                                    author: expect.any(String)
-                                })
-                            })
-                    })
-
-                    test("can update any part of an article and multiple fields", () => {
-                        return request(app).patch("/api/articles/1").send({ title: "Bing", body: "Bong", votes: 17, topic: "cats", author: "rogersop" }).expect(200)
-                            .then(response => {
-                                expect(response.body.articles[0]).toMatchObject({
-                                    article_id: 1,
-                                    title: "Bing",
-                                    body: "Bong",
-                                    votes: 17,
-                                    topic: "cats",
-                                    author: "rogersop"
-                                })
-                            })
-                    })
-
                     test("accepts an inc_vote: newVote and increments the votes value by newVote", () => {
                         return request(app).patch("/api/articles/1")
                             .send({ inc_votes: 1 })
                             .expect(200)
                             .then(response => {
-                                expect(response.body.articles[0]).toMatchObject({
+                                expect(response.body).toEqual({
                                     article_id: 1,
-                                    title: expect.any(String),
-                                    body: expect.any(String),
+                                    title: "Living in the shadow of a great man",
+                                    body: "I find this existence challenging",
                                     votes: 101,
-                                    topic: expect.any(String),
-                                    author: expect.any(String),
-                                    created_at: expect.anything()
-                                })
-                            })
-                    })
-
-                    test("returns article when only invalid keys are used", () => {
-                        return request(app).patch("/api/articles/1").send({ subtitle: "Not valid" }).expect(200)
-                            .then(response => {
-                                expect(response.body.articles[0]).toMatchObject({
-                                    article_id: expect.any(Number),
-                                    title: expect.any(String),
-                                    body: expect.any(String),
-                                    votes: expect.any(Number),
-                                    topic: expect.any(String),
-                                    author: expect.any(String),
-                                })
-                                expect(response.body.articles[0]).not.toMatchObject({
-                                    subtitle: expect.any(String)
-                                })
-                            })
-                    })
-
-                    test("updates only the relevant data when passed a mix of valid and invalid keys", () => {
-                        return request(app).patch("/api/articles/1").send({ title: "Bingo", subtitle: "Not valid" }).expect(200)
-                            .then(response => {
-                                expect(response.body.articles[0]).toMatchObject({
-                                    article_id: expect.any(Number),
-                                    title: "Bingo",
-                                    body: expect.any(String),
-                                    votes: expect.any(Number),
-                                    topic: expect.any(String),
-                                    author: expect.any(String),
-                                })
-                                expect(response.body.articles[0]).not.toMatchObject({
-                                    subtitle: expect.any(String)
+                                    topic: "mitch",
+                                    author: "butter_bridge",
+                                    created_at: '2020-07-09T20:11:00.000Z'
                                 })
                             })
                     })
                 })
 
                 describe("status 400 - Bad Request", () => {
-                    test("returns an error when passed an invalid type of article_id", () => {
-                        return request(app).patch("/api/articles/badarticle_id").send({ title: "Bingo" }).expect(400)
+                    test("returns a rejected promise when passed an invalid type of article_id", () => {
+                        return request(app).patch("/api/articles/badarticle_id").send({ inc_votes: 10 }).expect(400)
                             .then(response => {
-                                expect(response.body.msg).toBe("invalid type for key")
+                                expect(response.body.msg).toBe("Invalid endpoint")
                             })
                     })
 
-                    test("updating foreign key with incorrect info", () => {
-                        return request(app).patch("/api/articles/1").send({ topic: "Not a valid topic" }).expect(400)
-                            .then(response => {
-                                expect(response.body.msg).toBe("cannot create an original value for topic and/or author")
-                            })
-                    })
-
-                    test("patched info is too large for columns", () => {
-                        return request(app).patch("/api/articles/1").send({ title: "I have no idea how long this title will go on for, I really really really really really hope that it will reach 128 characters long soon, otherwise this will be absolutely ridiculously long. I cannot believe that I am still typing this out, I must have hit 128 characters now, surely!" })
+                    test("returns a rejected promise when inc_votes is not a number or udefined", () => {
+                        return request(app).patch("/api/articles/1").send({ inc_votes: "badValue" })
                             .expect(400)
                             .then(response => {
-                                expect(response.body.msg).toBe("at least one value exceeds character limit")
+                                expect(response.body.msg).toBe("Invalid object")
                             })
                     })
 
-                    test("invalid type of info to update", () => {
-                        return request(app).patch("/api/articles/1").send({ votes: "not a valid type" }).expect(400)
-                            .then(response => {
-                                expect(response.body.msg).toBe("invalid type for key")
-                            })
-                    })
-
-                    test("safe to SQL Injection #1", () => {
-                        return request(app).patch("/api/articles/1; DROP TABLE articles;").send({ body: "something; DROP TABLE articles" }).expect(400)
-                            .then(response => {
-                                expect(response.body.msg).toBe("invalid type for key")
-                            })
-                    })
-
-                    test("safe to SQL Injection #2", () => {
-                        return request(app).patch("/api/articles/1; 'DROP TABLE articles;'")
-                            .send({ body: "something;  'DROP TABLE articles;'" })
-                            .expect(400)
-                            .then(response => {
-                                expect(response.body.msg).toBe("invalid type for key")
-                            })
-                    })
-
-                    test("safe to SQL Injection #3", () => {
-                        return request(app).patch("/api/articles/1; ''DROP TABLE articles;''")
-                            .send({ body: "something; ''DROP TABLE articles''", votes: '19; DROP TABLE articles;' })
-                            .expect(400)
-                            .then(response => {
-                                expect(response.body.msg).toBe("invalid type for key")
-                            })
-                    })
                 })
 
                 describe("status 404 - Page Not Found", () => {
                     test("article_id is a number but does not exist", () => {
-                        return request(app).patch("/api/articles/100000").send({ title: "Bingo" }).expect(404)
+                        return request(app).patch("/api/articles/100000").send({ inc_votes: -17 }).expect(404)
                             .then(response => {
-                                expect(response.body.msg).toBe("article does not exist")
+                                expect(response.body.msg).toBe("Endpoint does not exist")
                             })
                     })
                 })
@@ -805,7 +708,7 @@ describe("/api", () => {
             })
 
             describe("/comments", () => {
-                describe("/ - GET", () => {
+                describe.only("/ - GET", () => {
                     describe("status 200 - Success", () => {
                         test("return comments associated with an article", () => {
                             return request(app).get("/api/articles/1/comments").expect(200)
@@ -821,6 +724,13 @@ describe("/api", () => {
                                             body: expect.any(String)
                                         })
                                     })
+                                })
+                        })
+
+                        test("returns an empty array when an article has no comments associated with it", () => {
+                            return request(app).get("/api/articles/7/comments").expect(200)
+                                .then(response => {
+                                    expect(response.body.comments).toEqual([])
                                 })
                         })
 
@@ -844,28 +754,16 @@ describe("/api", () => {
                         test("returns an error when passed an invalid type of article_id", () => {
                             return request(app).get("/api/articles/dog/comments").expect(400)
                                 .then(response => {
-                                    expect(response.body.msg).toBe("invalid type for endpoint")
+                                    expect(response.body.msg).toBe("Invalid type for endpoint")
                                 })
                         })
 
                         test("returns an error when passed an invalid type for queries", async() => {
                             await request(app).get("/api/articles/1/comments?limit=bing").expect(400)
-                                .then(response => { expect(response.body.msg).toBe("invalid type for endpoint") })
+                                .then(response => { expect(response.body.msg).toBe("Invalid query") })
                             await request(app).get("/api/articles/1/comments?page=bing").expect(400)
-                                .then(response => { expect(response.body.msg).toBe("invalid type for endpoint") })
+                                .then(response => { expect(response.body.msg).toBe("Invalid query") })
 
-                        })
-
-                        test("safe against SQL Injection #1", () => {
-                            return request(app).get("/api/articles/1; DROP TABLE articles;/comments").expect(400)
-                                .then(response => {
-                                    expect(response.body.msg).toBe("invalid type for endpoint")
-                                })
-                        })
-
-                        test("safe against SQL Injection #2", async() => {
-                            await request(app).get("/api/articles/1/comments?limit='DROP TABLE articles'").expect(400)
-                                .then(response => { expect(response.body.msg).toBe("invalid type for endpoint") })
                         })
                     })
 

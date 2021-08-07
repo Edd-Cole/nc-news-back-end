@@ -68,7 +68,7 @@ Users:username sending back users??? array???
 
 - `GET /api/articles/:article_id`
 
-  - [ ] Status 200, single article object (including `comment_count`)
+  - [x] Status 200, single article object (including `comment_count`)
         sending back articles in an array?
 
   - [x] Status 400, invalid ID, e.g. string of "not-an-id"
@@ -78,13 +78,13 @@ Users:username sending back users??? array???
 
 - `PATCH /api/articles/:article_id`
 
-  - [ ] Status 200, updated single article object
+  - [x] Status 200, updated single article object
         test decription isnt testing in 200
         ask for specific values
         more functionality than requested
 
-  - [ ] Status 400, invalid ID, e.g. string of "not-an-id"
-  - [ ] Status 404, non existent ID, e.g. 0 or 9999
+  - [x] Status 400, invalid ID, e.g. string of "not-an-id"
+  - [x] Status 404, non existent ID, e.g. 0 or 9999
         not tested inc_votes
 
   - [x] Status 400, missing / incorrect body, e.g. `inc_votes` property is not a number, or missing
@@ -94,20 +94,20 @@ Users:username sending back users??? array???
   - [x] Status 200, array of article objects (including `comment_count`, excluding `body`)
         doesnt check the length of the returned array
 
-  - [ ] Status 200, default sort & order: `created_at`, `desc`
-  - [ ] Status 200, accepts `sort_by` query, e.g. `?sort_by=votes`
+  - [x] Status 200, default sort & order: `created_at`, `desc`
+  - [x] Status 200, accepts `sort_by` query, e.g. `?sort_by=votes`
         sortBy used not sort_by.
 
-  - [ ] Status 200, accepts `order` query, e.g. `?order=desc`
+  - [x] Status 200, accepts `order` query, e.g. `?order=desc`
         wanted order, got orderBy
 
   - [x] Status 200, accepts `topic` query, e.g. `?topic=coding`
   - [x] Status 400. invalid `sort_by` query, e.g. `?sort_by=bananas`
   - [x] Status 400. invalid `order` query, e.g. `?order=bananas`
-  - [ ] Status 404. non-existent `topic` query, e.g. `?topic=bananas`
+  - [x] Status 404. non-existent `topic` query, e.g. `?topic=bananas`
         sending back 400 when should be a 404
 
-  - [ ] Status 200. valid `topic` query, but has no articles responds with an empty array of articles, e.g. `?topic=paper`
+  - [x] Status 200. valid `topic` query, but has no articles responds with an empty array of articles, e.g. `?topic=paper`
         not tested for
 
 - `GET /api/articles/:article_id/comments`
@@ -115,7 +115,7 @@ Users:username sending back users??? array???
   - [x] Status 200, array of comment objects for the specified article
   - [x] Status 400, invalid ID, e.g. string of "not-an-id"
   - [x] Status 404, non existent ID, e.g. 0 or 9999
-  - [ ] Status 200, valid ID, but has no comments responds with an empty array of comments
+  - [x] Status 200, valid ID, but has no comments responds with an empty array of comments
         not tested
 
 - `POST /api/articles/:article_id/comments`

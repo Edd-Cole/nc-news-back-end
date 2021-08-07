@@ -1,16 +1,21 @@
 const db = require("../../db/connection.js");
-// const format = require("pg-format")
+const articles = require("../../db/data/test-data/articles.js");
 
-const selectArticles = ({ sortBy, orderBy, topic, limit, page }) => {
-    //SQL Injection cleansing
-    sortBy = sortBy ? sortBy.replace(/\s/g, "") : "article_id";
-    orderBy = orderBy ? orderBy.replace(/\s/g, "") : "ASC";
-    topic = topic ? topic.replace(/\s/g, "") : "";
-    limit = limit ? parseInt(limit.toString().replace(/\s/g, "")) : 10;
-    page = page ? parseInt(page.toString().replace(/\s/g, "")) : 1;
-    //Creating a string to insert to filter by topic so we can easily add it into the query below
+const selectArticles = async({ sort_by = "created_at", order_by = "DESC", topic, limit = 10, page = 1 }) => {
+    const topics = await db.query("SELECT slug FROM topics;")
+        .then(response => {
+            const topics = response.rows.map(topic => topic.slug)
+            topics.push(undefined)
+            return topics
+        }).then(topics => {
+            if (!topics.includes(topic)) return Promise.reject({ code: 404, msg: "Invalid query" })
+        })
+        .catch(error => {
+            return Promise.reject(error)
+        })
     let topicString = topic ? `WHERE articles.topic = '${topic}'` : "";
-    //database query
+    page = (page - 1) * limit;
+
     return db.query(`
     SELECT articles.article_id, articles.title, articles.body, articles.votes, articles.topic, articles.author, articles.created_at, COUNT(comments.comment_id) AS comment_count
     FROM articles
@@ -18,10 +23,13 @@ const selectArticles = ({ sortBy, orderBy, topic, limit, page }) => {
     ON articles.article_id = comments.article_id
     ${topicString}
     GROUP BY articles.article_id
-    ORDER BY ${sortBy} ${orderBy}
-    LIMIT ${limit} OFFSET ${(page-1)*limit}`)
+    ORDER BY ${sort_by} ${order_by}
+    LIMIT ${limit} OFFSET ${page};`)
         .then(articles => {
-            return articles.rows;
+            return articles.rows
+        })
+        .catch(error => {
+            return Promise.reject(error)
         })
 }
 
@@ -40,62 +48,58 @@ const selectArticleByID = (article_id) => {
         })
 }
 
-const updateArticleByID = async(article_id, articleInfo) => {
-    //SQL Injection Sanitisation - remove single quotes, or double them up
-    article_id = article_id.replace(/\'/g, "")
-    for (item in articleInfo) {
-        if (item !== "votes" && item !== "inc_votes") {
-            articleInfo[item] = articleInfo[item].replace(/\'/g, '\'\'')
-        }
-    }
-    //Checks that if only invalid values are used, then we get the article
-    let { title, body, votes, topic, author, inc_votes = 0 } = articleInfo;
-    const articleInfoValues = Object.values({ title, body, votes, topic, author, inc_votes })
-    if (articleInfoValues.every(info => info === undefined)) {
-        return db.query("SELECT * FROM articles WHERE article_id = $1", [article_id])
-            .then(response => {
-                return response.rows;
-            })
-    }
-    //Grab the value of votes for this article, and then pass that to the update below so we
-    //can manipulate the information with inc_votes, as needed
-    const votesValue = await db.query("SELECT votes FROM articles WHERE article_id = $1", [article_id])
-        .then(votes => {
-            if (votes.rows.length === 0) {
-                return Promise.reject({ code: 404, msg: "article does not exist" })
+const updateArticleByID = async(article_id, inc_votes) => {
+    if (!parseInt(article_id)) return Promise.reject({ code: 400, msg: "Invalid endpoint" })
+    let votes = await db.query("SELECT votes FROM articles WHERE article_id = $1", [article_id])
+        .then(articles => {
+            if (articles.rows.length !== 0) {
+                return articles.rows[0].votes
+            } else {
+                return Promise.reject({ code: 404, msg: "Endpoint does not exist" })
             }
-            return votes.rows[0].votes
-        });
-    //Create the SQL SET statement using the information from PATCH
-    title = title ? `title = '${title}',` : "";
-    body = body ? `body = '${body}',` : "";
-    votes = votes ? `votes = '${votes + inc_votes}',` : `votes = '${votesValue + inc_votes}',`;
-    topic = topic ? `topic = '${topic}',` : "";
-    author = author ? `author = '${author}',` : "";
-    let updateString = `${title}${body}${votes}${topic}${author}`.slice(0, -1);
-    //Using the created set statement, update the table
-    return db.query(`UPDATE articles
-     SET ${updateString}
-     WHERE article_id = '${article_id}'
-     RETURNING *;`)
-        .then(response => {
-            if (response.rows.length === 0) {
-                return { code: 404, msg: "article does not exist" }
-            }
-            return response.rows[0];
+        })
+
+    votes += inc_votes;
+    return db.query(`
+        UPDATE articles
+        SET votes = $2
+        WHERE article_id = $1
+        RETURNING *;`, [article_id, votes])
+        .then(articles => {
+            console.log(articles)
+            return articles.rows[0]
+        })
+        .catch(error => {
+            return Promise.reject({ code: 400, msg: "Invalid object" })
         })
 }
 
-const selectCommentsByArticleID = (article_id, { limit = 10, page = 1 }) => {
+const selectCommentsByArticleID = async(article_id, { limit = 10, page = 1 }) => {
+    await db.query("SELECT article_id FROM articles WHERE article_id = $1", [article_id])
+        .catch(error => {
+            console.log(error)
+            return Promise.reject({ code: 400, msg: "Invalid type for endpoint" })
+        })
+        .then(article => {
+            if (article.rows[0] === undefined) {
+                return Promise.reject({ code: 404, msg: "article does not exist" })
+            }
+        })
+    limit = parseInt(limit);
+    page = parseInt((page - 1) * limit);
     return db.query(`
     SELECT comment_id, articles.title, comments.author, articles.article_id, comments.votes, comments.body
     FROM articles
     JOIN comments
     ON articles.article_id = comments.article_id
     WHERE articles.article_id = $1
-    LIMIT ${limit} OFFSET ${(page - 1)*limit}`, [article_id])
+    LIMIT ${limit} OFFSET ${page}`, [article_id])
         .then(response => {
+            console.log(response.rows)
             return response.rows;
+        })
+        .catch(error => {
+            return Promise.reject(error)
         })
 }
 
