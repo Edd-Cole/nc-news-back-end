@@ -1,5 +1,6 @@
 const db = require("../../db/connection.js");
 const articles = require("../../db/data/test-data/articles.js");
+const users = require("../../db/data/test-data/users.js");
 
 const selectArticles = async({ sort_by = "created_at", order_by = "DESC", topic, limit = 10, page = 1 }) => {
     const topics = await db.query("SELECT slug FROM topics;")
@@ -77,12 +78,11 @@ const updateArticleByID = async(article_id, inc_votes) => {
 const selectCommentsByArticleID = async(article_id, { limit = 10, page = 1 }) => {
     await db.query("SELECT article_id FROM articles WHERE article_id = $1", [article_id])
         .catch(error => {
-            console.log(error)
             return Promise.reject({ code: 400, msg: "Invalid type for endpoint" })
         })
         .then(article => {
             if (article.rows[0] === undefined) {
-                return Promise.reject({ code: 404, msg: "article does not exist" })
+                return Promise.reject({ code: 404, msg: "Article does not exist" })
             }
         })
     limit = parseInt(limit);
@@ -103,8 +103,21 @@ const selectCommentsByArticleID = async(article_id, { limit = 10, page = 1 }) =>
         })
 }
 
-const addCommentByArticleID = (article_id, commentInfo) => {
-    const { author, body } = commentInfo;
+const addCommentByArticleID = async(article_id, { author, body }) => {
+    await db.query("SELECT article_id FROM articles WHERE article_id = $1", [article_id])
+        .catch(error => {
+            return Promise.reject({ code: 400, msg: "Invalid endpoint" })
+        })
+        .then(article => {
+            if (!article.rows[0]) {
+                return Promise.reject({ code: 404, msg: "Article does not exist" })
+            }
+        })
+    await db.query("SELECT username FROM users WHERE username = $1", [author])
+        .then(users => {
+            if (!users.rows[0]) return Promise.reject({ code: 404, msg: "Invalid data received" })
+        })
+
     return db.query(`
     INSERT INTO comments
         (author, article_id, body)
@@ -113,6 +126,9 @@ const addCommentByArticleID = (article_id, commentInfo) => {
         RETURNING *;`, [author, article_id, body])
         .then(comments => {
             return comments.rows[0]
+        })
+        .catch(error => {
+            return Promise.reject(error);
         })
 }
 

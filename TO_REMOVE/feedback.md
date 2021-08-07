@@ -120,16 +120,16 @@ Users:username sending back users??? array???
 
 - `POST /api/articles/:article_id/comments`
 
-  - [ ] Status 201, created comment object
+  - [x] Status 201, created comment object
         returning comments when only serving one
         not checking created at or on key
         dont like that your checking its in the db
 
-  - [ ] Status 400, invalid ID, e.g. string of "not-an-id"
+  - [x] Status 400, invalid ID, e.g. string of "not-an-id"
         would not say not a number, inconsistent
-  - [ ] Status 404, non existent ID, e.g. 0 or 9999
+  - [x] Status 404, non existent ID, e.g. 0 or 9999
   - [x] Status 400, missing required field(s), e.g. no username or body properties
-  - [ ] Status 404, username does not exist
+  - [x] Status 404, username does not exist
         you have it as 400, plus I wouldnt give so much info away
   - [x] Status 201, ignores unnecessary properties
 

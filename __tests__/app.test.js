@@ -708,7 +708,7 @@ describe("/api", () => {
             })
 
             describe("/comments", () => {
-                describe.only("/ - GET", () => {
+                describe("/ - GET", () => {
                     describe("status 200 - Success", () => {
                         test("return comments associated with an article", () => {
                             return request(app).get("/api/articles/1/comments").expect(200)
@@ -784,22 +784,13 @@ describe("/api", () => {
                                 .send({ author: "lurker", body: "I've invented a new O(n) sorting algorithm!" })
                                 .expect(201)
                                 .then(response => {
-
-                                    expect(response.body.comments).toMatchObject({
-                                        comment_id: expect.any(Number),
+                                    expect(response.body).toEqual({
+                                        comment_id: 19,
                                         author: "lurker",
                                         body: "I've invented a new O(n) sorting algorithm!",
                                         article_id: 1,
-                                        votes: 0
-                                    })
-                                    return db.query("SELECT * FROM comments")
-                                }).then(data => {
-                                    expect(data.rows[data.rows.length - 1]).toMatchObject({
-                                        comment_id: expect.any(Number),
-                                        author: "lurker",
-                                        body: "I've invented a new O(n) sorting algorithm!",
-                                        article_id: 1,
-                                        votes: 0
+                                        votes: 0,
+                                        created_at: expect.anything()
                                     })
                                 })
                         })
@@ -809,55 +800,29 @@ describe("/api", () => {
                                 .send({ author: "lurker", body: "I've invented a new O(n) sorting algorithm!", burger: "not relevant info" })
                                 .expect(201)
                                 .then(response => {
-                                    expect(response.body.comments).toMatchObject({
-                                        comment_id: expect.any(Number),
+                                    expect(response.body).toEqual({
+                                        comment_id: 19,
                                         author: "lurker",
                                         body: "I've invented a new O(n) sorting algorithm!",
                                         article_id: 1,
-                                        votes: 0
+                                        votes: 0,
+                                        created_at: expect.any(String)
                                     })
-                                    expect(response.body.comments).not.toMatchObject({
+                                    expect(response.body).not.toMatchObject({
                                         burger: expect.any(String)
                                     })
-                                })
-                        })
-
-                        test("safe against SQL Injection #1", () => {
-                            return request(app).post("/api/articles/1/comments")
-                                .send({ author: "lurker", body: "Bye; DROP TABLE articles;" })
-                                .expect(201)
-                                .then(() => {
-                                    return db.query("SELECT * FROM articles")
-                                })
-                                .then(a => {
-                                    expect(a.rows.length).not.toBe(0)
-                                    expect(a.rows).toEqual(expect.anything())
-                                })
-                        })
-
-                        test("safe against SQL Injection #2", () => {
-                            return request(app).post("/api/articles/1/comments")
-                                .send({ author: "lurker", body: "bye; 'DROP TABLE articles'" })
-                                .expect(201)
-                                .then(() => {
-                                    return db.query("SELECT * FROM articles")
-                                })
-                                .then(a => {
-                                    expect(a.rows.length).not.toBe(0)
-                                    expect(a.rows).toEqual(expect.anything())
                                 })
                         })
                     })
 
                     describe("status 400 - Bad Request", () => {
-                        test("must include author and body in post request", () => {
+                        test("must include a body in post request", () => {
                             return request(app).post("/api/articles/1/comments")
-                                .send({})
+                                .send({ author: "lurker" })
                                 .expect(400)
                                 .then(response => {
-                                    expect(response.body.msg).toBe("author and body must be specified")
+                                    expect(response.body.msg).toBe("Invalid data received")
                                 })
-
                         })
 
                         test("article_id is not of correct type", () => {
@@ -865,25 +830,28 @@ describe("/api", () => {
                                 .send({ author: "lurker", body: "hi" })
                                 .expect(400)
                                 .then(response => {
-                                    expect(response.body.msg).toBe("article_id must be a number")
+                                    expect(response.body.msg).toBe("Invalid endpoint")
                                 })
                         })
 
-                        test("invalid types for author and/or body", () => {
-                            return request(app).post("/api/articles/1/comments")
-                                .send({ author: 4, body: 5 })
-                                .expect(400)
-                                .then(response => {
-                                    expect(response.body.msg).toBe("author must reference a username, article_id must exist and body must be of type String")
-                                })
-                        })
+                    })
 
+                    describe("status 404 - Page Not Found", () => {
                         test("article_id is not in the database but is of correct type", () => {
                             return request(app).post("/api/articles/100000/comments")
                                 .send({ author: "lurker", body: "hi" })
-                                .expect(400)
+                                .expect(404)
                                 .then(response => {
-                                    expect(response.body.msg).toBe("author must reference a username, article_id must exist and body must be of type String")
+                                    expect(response.body.msg).toBe("Article does not exist")
+                                })
+                        })
+
+                        test("author of comment does not exist in the database", () => {
+                            return request(app).post("/api/articles/1/comments")
+                                .send({ author: "12345", body: "I don't exist" })
+                                .expect(404)
+                                .then(response => {
+                                    expect(response.body.msg).toBe("Invalid data received")
                                 })
                         })
                     })
