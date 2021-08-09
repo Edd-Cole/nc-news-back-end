@@ -119,19 +119,23 @@ describe("/api", () => {
             })
         })
 
-        // describe.only("/ - DELETE", () => {
-        //     describe("status 204 - Success: No Content", () => {
-        //         test("deletes a topic", async() => {
-        //             await request(app).delete("/api/topics/cats")
-        //                 .expect(204)
+        describe("/ - DELETE", () => {
+            describe("status 204 - Success: No Content", () => {
+                test("deletes a topic from the database, cascading all articles and comment", () => {
+                    return request(app).delete("/api/topics/mitch")
+                        .expect(204)
+                })
+            })
 
-        //             await db.query("SELECT * FROM topics WHERE slug = cats")
-        //                 .then(response => {
-        //                     expect(response.body).toBe(undefined)
-        //                 })
-        //         })
-        //     })
-        // })
+            describe("status 404 - Page Not Found", () => {
+                test("topic does not exist in the database rejects attempt to delete", () => {
+                    return request(app).delete("/api/topics/dogs").expect(404)
+                        .then(response => {
+                            expect(response.body.msg).toBe("Invalid endpoint")
+                        })
+                })
+            })
+        })
     })
 
     describe("/users", () => {

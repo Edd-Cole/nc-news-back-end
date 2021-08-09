@@ -45,8 +45,18 @@ const updateTopicByID = async(slug, invalidSlug, description) => {
         })
 }
 
-const removeTopicByID = (slug) => {
+const removeTopicByID = async(slug) => {
+    await db.query("SELECT slug FROM topics WHERE slug = $1", [slug])
+        .then(topics => {
+            if (topics.rows.length === 0) {
+                return Promise.reject({ code: 404, msg: "Invalid endpoint" })
+            }
+        })
 
+    return db.query("DELETE FROM topics WHERE slug = $1", [slug])
+        .then(topics => {
+            return topics.rows;
+        })
 }
 
 module.exports = { selectTopics, addTopic, updateTopicByID, removeTopicByID }

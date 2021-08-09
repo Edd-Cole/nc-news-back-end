@@ -35,7 +35,14 @@ const patchTopicByID = (request, response, next) => {
 }
 
 const deleteTopicByID = (request, response, next) => {
-    removeTopicByID
+    const { slug } = request.params;
+    removeTopicByID(slug)
+        .then(() => {
+            response.sendStatus(204);
+        })
+        .catch(error => {
+            next(error)
+        })
 }
 
 module.exports = { getTopics, postTopic, patchTopicByID, deleteTopicByID };
