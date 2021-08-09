@@ -53,8 +53,8 @@ db in utils test, watch for unused variables!
 - [x] If asserting inside a `forEach`, also has an assertion to check length is at least > 0
       not doing this!!
 
-- [ ] Ensure all tests are passing
-- [ ] Cover all endpoints and errors
+- [x] Ensure all tests are passing
+- [x] Cover all endpoints and errors
 
 thorough/ too thourough in places but not thouogh enough in others e.g 400 post user
 
@@ -151,7 +151,7 @@ wouldnt have tested that way you did
 ## Controllers
 
 - [x] Name functions and variables well
-- [] Add catch blocks to all model invocations (and don't mix use of`.catch(next);` and `.catch(err => next(err))`)
+- [x] Add catch blocks to all model invocations (and don't mix use of`.catch(next);` and `.catch(err => next(err))`)
   would use promise. reject in models not controllers
 
 not catch on getTopics
@@ -169,10 +169,10 @@ not catch on getTopics
 
 ## Errors
 
-- [ ] Use error handling middleware functions in app and extracted to separate directory/file
+- [x] Use error handling middleware functions in app and extracted to separate directory/file
       your only using 1 midleware function
 
-- [ ] Consistently use `Promise.reject` in either models _**OR**_ controllers
+- [x] Consistently use `Promise.reject` in either models _**OR**_ controllers
 
 ## Extra Advanced Tasks
 

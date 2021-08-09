@@ -90,7 +90,7 @@ npm test u      <----- to only test util functions
 ```
 
 ### Running externally
-If you have really enjoyed yourself (and I can't see why not!), you take this project to the next level and add data into the databases permanently!
+If you have really enjoyed yourself (and I can't see why not!), you can take this project to the next level and add data into the database permanently!
 
 But how?
 
