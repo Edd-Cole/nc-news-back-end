@@ -39,7 +39,7 @@ const updateUserByUsername = async(userName, { username, avatar_url, name }) => 
     await db.query("SELECT username FROM users WHERE username = $1", [userName])
         .then(users => {
             if (users.rows.length === 0) {
-                return Promise.reject({ code: 400, msg: "Invalid data received" })
+                return Promise.reject({ code: 404, msg: "Invalid endpoint" })
             }
         })
         //build update string query for insertion below
