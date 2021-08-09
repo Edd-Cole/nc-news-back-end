@@ -579,7 +579,7 @@ describe("/api", () => {
                                     votes: 101,
                                     topic: "mitch",
                                     author: "butter_bridge",
-                                    created_at: '2020-07-09T20:11:00.000Z'
+                                    created_at: expect.any(String)
                                 })
                             })
                     })
