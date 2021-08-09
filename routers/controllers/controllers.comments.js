@@ -7,11 +7,7 @@ const getComments = (request, response, next) => {
             response.status(200).send({ comments })
         })
         .catch(error => {
-            if (error.code === "42703") {
-                next({ code: 400, msg: "invalid query" })
-            } else {
-                next(error)
-            }
+            next(error)
         })
 }
 

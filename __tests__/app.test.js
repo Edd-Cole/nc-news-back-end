@@ -478,7 +478,7 @@ describe("/api", () => {
             })
         })
 
-        describe.only("/ - POST", () => {
+        describe("/ - POST", () => {
             describe("status 201 - Created", () => {
                 test("returns the newly created article and article is in database", async() => {
                     await request(app).post("/api/articles")
@@ -502,14 +502,6 @@ describe("/api", () => {
                         })
                     await db.query("SELECT * FROM articles ORDER BY article_id DESC LIMIT 1;")
                         .then(response => expect(response.rows[0].title).toBe("Who ate all the cats?"))
-                })
-
-                test("safe against SQL Injection", () => {
-                    return request(app).post("/api/articles")
-                        .send({ title: 'DROP TABLE articles', author: "lurker", topic: "cats", body: 'DROP TABLE articles' })
-                        .then(response => {
-                            expect(response.body.articles).not.toBe(undefined)
-                        })
                 })
             })
 
@@ -636,7 +628,7 @@ describe("/api", () => {
                     test("wrong type for article_id", () => {
                         return request(app).delete("/api/articles/dog").expect(400)
                             .then(response => {
-                                expect(response.body.msg).toBe("article_id must be a Number")
+                                expect(response.body.msg).toBe("Invalid endpoint")
                             })
                     })
                 })
@@ -853,12 +845,21 @@ describe("/api", () => {
         })
 
         describe("/:comment_id", () => {
-            describe("/ - DELETE", () => {
+            describe.only("/ - DELETE", () => {
                 describe("status 204 - Success: No Content", () => {
                     test("deletes a comment", async() => {
                         await request(app).delete("/api/comments/1").expect(204)
                         await db.query("SELECT * FROM comments WHERE comment_id = 1")
                             .then(response => expect(response.rows).toHaveLength(0))
+                    })
+                })
+
+                describe("status 400 - Bad Request", () => {
+                    test("rejects a promise if the comment_id is not of the correct type i.e. number", () => {
+                        return request(app).delete("/api/comments/dog").expect(400)
+                            .then(response => {
+                                expect(response.body.msg).toBe("Invalid endpoint")
+                            })
                     })
                 })
             })

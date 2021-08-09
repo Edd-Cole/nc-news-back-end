@@ -77,12 +77,7 @@ const deleteArticleByID = (request, response, next) => {
             response.sendStatus(204);
         })
         .catch(error => {
-            if (error.code === "22P02") {
-                next({ code: 400, msg: "article_id must be a Number" })
-            } else {
-                console.log(error)
-                next(error)
-            }
+            next(error)
         })
 }
 

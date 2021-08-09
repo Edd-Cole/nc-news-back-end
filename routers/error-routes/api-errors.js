@@ -23,8 +23,7 @@ const customErrors = (error, request, response, next) => {
     } else if (error.code === "42703") {
         response.status(400).send({ code: 400, msg: "Invalid query" })
     } else {
-        console.log(error, "ERROR HERE!!!")
-        next()
+        next(error)
     }
 }
 module.exports = { apiError, customErrors };
