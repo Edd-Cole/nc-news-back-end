@@ -11,7 +11,7 @@ const selectUserByUsername = (username) => {
     return db.query(`SELECT * FROM users WHERE username = $1`, [username])
         .then(users => {
             if (users.rows.length === 0) {
-                return { code: 404, msg: "user does not exist" }
+                return Promise.reject({ code: 404, msg: "Invalid endpoint" })
             } else {
                 return users.rows[0];
             }
@@ -36,7 +36,13 @@ const removeUserByUsername = async(username) => {
 }
 
 const updateUserByUsername = async(userName, { username, avatar_url, name }) => {
-    //build update string query for insertion below
+    await db.query("SELECT username FROM users WHERE username = $1", [userName])
+        .then(users => {
+            if (users.rows.length === 0) {
+                return Promise.reject({ code: 400, msg: "Invalid data received" })
+            }
+        })
+        //build update string query for insertion below
     username = username ? `username = '${username}',` : "";
     avatar_url = avatar_url ? `avatar_url = '${avatar_url}',` : "";
     name = name ? `name = '${name}',` : "";
@@ -50,6 +56,9 @@ const updateUserByUsername = async(userName, { username, avatar_url, name }) => 
     `)
         .then(users => {
             return users.rows
+        })
+        .catch(error => {
+            return Promise.reject({ code: 400, msg: "Invalid data received" })
         })
 }
 

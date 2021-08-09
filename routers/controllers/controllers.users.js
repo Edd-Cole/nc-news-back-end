@@ -43,21 +43,10 @@ const patchUserByUsername = (request, response, next) => {
     let { body } = request
     updateUserByUsername(userName, body)
         .then(users => {
-            if (users.length === 0) {
-                next({ code: 400, msg: "user does not exist" })
-            } else {
-                response.status(200).send({ users })
-            }
+            response.status(200).send({ users })
         })
         .catch(error => {
-            if (error.code === "23505") {
-                next({ code: 400, msg: "user already exists" })
-            } else if (error.code === "42601") {
-                next({ code: 400, msg: "No information to update" })
-            } else {
-                console.log(error)
-                next(error)
-            }
+            next(error)
         })
 }
 
@@ -68,11 +57,7 @@ const postUser = (request, response, next) => {
             response.status(201).send({ users })
         })
         .catch(error => {
-            if (error.code === "23502") {
-                next({ code: 400, msg: "user already exists" })
-            } else {
-                next(error)
-            }
+            next(error)
         })
 }
 

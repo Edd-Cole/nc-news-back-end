@@ -18,9 +18,19 @@ const addTopic = ({ slug, description }) => {
         .then(topics => {
             return topics.rows[0]
         })
+        .catch(error => {
+            return Promise.reject(error)
+        })
 }
 
-const updateTopicByID = (slug, description) => {
+const updateTopicByID = async(slug, invalidSlug, description) => {
+    if (invalidSlug) {
+        return Promise.reject({ code: 400, msg: "Invalid data received" })
+    }
+    await db.query("SELECT slug FROM topics WHERE slug = $1", [slug])
+        .then(response => {
+            if (response.rows.length === 0) return Promise.reject({ code: 400, msg: "Invalid endpoint" })
+        })
     return db.query(`
     UPDATE topics
     SET description = '${description}'
@@ -29,6 +39,9 @@ const updateTopicByID = (slug, description) => {
     `)
         .then(topics => {
             return topics.rows
+        })
+        .catch(error => {
+            return Promise.reject(error)
         })
 }
 

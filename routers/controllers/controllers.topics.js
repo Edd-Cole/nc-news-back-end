@@ -14,26 +14,14 @@ const postTopic = (request, response, next) => {
             response.status(201).send({ topics })
         })
         .catch(error => {
-            if (error.code === "23502") {
-                next({ code: 400, msg: "slug and description must be defined" })
-            } else if (error.code === "23505") {
-                next({ code: 400, msg: "slug already exists" })
-            } else {
-                console.log(error)
-                next(error)
-            }
+            next(error)
         })
 }
 
 const patchTopicByID = (request, response, next) => {
     const { slug } = request.params
     const { slug: invalidSlug, description } = request.body;
-    //slug error catching
-    if (invalidSlug) {
-        return next({ code: 400, msg: "cannot change slug" })
-    }
-    //transferring to models
-    updateTopicByID(slug, description)
+    updateTopicByID(slug, invalidSlug, description)
         .then(topics => {
             if (topics.length === 0) {
                 next({ code: 400, msg: "slug does not exist" })
@@ -42,12 +30,7 @@ const patchTopicByID = (request, response, next) => {
             }
         })
         .catch(error => {
-            if (error.code === "42601") {
-                next({ code: 400, msg: "slug does not exist" })
-            } else {
-                console.log(error)
-                next(error)
-            }
+            next(error)
         })
 }
 

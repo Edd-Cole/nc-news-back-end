@@ -34,7 +34,12 @@ const selectArticles = async({ sort_by = "created_at", order_by = "DESC", topic,
         })
 }
 
-const selectArticleByID = (article_id) => {
+const selectArticleByID = async(article_id) => {
+    if (!article_id) return Promise.reject({ code: 400, msg: "Invalid endpoint" })
+    await db.query("SELECT article_id FROM articles WHERE article_id = $1", [article_id])
+        .then(articles => {
+            if (articles.rows.length === 0) return Promise.reject({ code: 404, msg: "Endpoint does not exist" })
+        })
     return db.query(`
     SELECT articles.article_id, articles.title, articles.body, articles.votes, articles.topic,
     articles.author, articles.created_at, COUNT(comments.comment_id) AS comment_count
@@ -44,8 +49,14 @@ const selectArticleByID = (article_id) => {
     WHERE articles.article_id = $1
     GROUP BY articles.article_id
     `, [article_id])
-        .then(response => {
-            return response.rows[0];
+        .then(articles => {
+            if (!articles.rows[0]) {
+                return Promise.reject({ code: 400, msg: "Invalid endpoint" })
+            }
+            return articles.rows[0];
+        })
+        .catch(error => {
+            return Promise.reject(error)
         })
 }
 
@@ -67,7 +78,6 @@ const updateArticleByID = async(article_id, inc_votes) => {
         WHERE article_id = $1
         RETURNING *;`, [article_id, votes])
         .then(articles => {
-            console.log(articles)
             return articles.rows[0]
         })
         .catch(error => {
@@ -95,7 +105,6 @@ const selectCommentsByArticleID = async(article_id, { limit = 10, page = 1 }) =>
     WHERE articles.article_id = $1
     LIMIT ${limit} OFFSET ${page}`, [article_id])
         .then(response => {
-            console.log(response.rows)
             return response.rows;
         })
         .catch(error => {

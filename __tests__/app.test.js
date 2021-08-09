@@ -55,18 +55,6 @@ describe("/api", () => {
                             })
                         })
                 })
-
-                test("safe against SQL Injection", () => {
-                    return request(app).post("/api/topics")
-                        .send({
-                            slug: "DROP TABLE articles",
-                            description: "DROP TABLE articles"
-                        })
-                        .expect(201)
-                        .then(response => {
-                            expect(response.body.topics).not.toBe(undefined)
-                        })
-                })
             })
 
             describe("status 400 - Bad Request", () => {
@@ -74,7 +62,7 @@ describe("/api", () => {
                     return request(app).post("/api/topics").send({ slug: "cats", description: "no" })
                         .expect(400)
                         .then(response => {
-                            expect(response.body.msg).toBe("slug already exists")
+                            expect(response.body.msg).toBe("Invalid data received")
                         })
                 })
 
@@ -82,12 +70,12 @@ describe("/api", () => {
                     await request(app).post("/api/topics").send({ description: "me" })
                         .expect(400)
                         .then(response => {
-                            expect(response.body.msg).toBe("slug and description must be defined")
+                            expect(response.body.msg).toBe("Invalid data received")
                         })
                     await request(app).post("/api/topics").send({ slug: "Boom" })
                         .expect(400)
                         .then(response => {
-                            expect(response.body.msg).toBe("slug and description must be defined")
+                            expect(response.body.msg).toBe("Invalid data received")
                         })
                 })
             })
@@ -107,19 +95,6 @@ describe("/api", () => {
                                 })
                             })
                     })
-
-                    test("safe against SQL Injection #1", async() => {
-                        await request(app).patch("/api/topics/cats")
-                            .send({
-                                description: "DROP TABLE articles;"
-                            })
-                            .expect(200)
-
-                        await db.query("SELECT * FROM articles;")
-                            .then(response => {
-                                expect(response.rows).not.toHaveLength(0)
-                            })
-                    })
                 })
 
                 describe("status 400 - Bad Request", () => {
@@ -128,7 +103,7 @@ describe("/api", () => {
                             .send({ slug: "dogs" })
                             .expect(400)
                             .then(response => {
-                                expect(response.body.msg).toBe("cannot change slug")
+                                expect(response.body.msg).toBe("Invalid data received")
                             })
                     })
 
@@ -137,37 +112,26 @@ describe("/api", () => {
                             .send({ description: "does not exist" })
                             .expect(400)
                             .then(response => {
-                                expect(response.body.msg).toBe("slug does not exist")
-                            })
-                    })
-
-                    test("safe against SQL Injection #2", async() => {
-                        await request(app).patch("/api/topics/'DROP TABLE articles;'")
-                            .send({ description: "'DROP TABLE articles;'" })
-                            .expect(400)
-
-                        await db.query("SELECT * FROM articles")
-                            .then(response => {
-                                expect(response.rows).not.toHaveLength(0)
+                                expect(response.body.msg).toBe("Invalid endpoint")
                             })
                     })
                 })
             })
-
-            // describe.only("/ - DELETE", () => {
-            //     describe("status 204 - Success: No Content", () => {
-            //         test("deletes a topic", async() => {
-            //             await request(app).delete("/api/topics/cats")
-            //                 .expect(204)
-
-            //             await db.query("SELECT * FROM topics WHERE slug = cats")
-            //                 .then(response => {
-            //                     expect(response.body).toBe(undefined)
-            //                 })
-            //         })
-            //     })
-            // })
         })
+
+        // describe.only("/ - DELETE", () => {
+        //     describe("status 204 - Success: No Content", () => {
+        //         test("deletes a topic", async() => {
+        //             await request(app).delete("/api/topics/cats")
+        //                 .expect(204)
+
+        //             await db.query("SELECT * FROM topics WHERE slug = cats")
+        //                 .then(response => {
+        //                     expect(response.body).toBe(undefined)
+        //                 })
+        //         })
+        //     })
+        // })
     })
 
     describe("/users", () => {
@@ -218,7 +182,7 @@ describe("/api", () => {
                     return request(app).post("/api/users").send({ name: "lurker", name: "Me" })
                         .expect(400)
                         .then(users => {
-                            expect(users.body.msg).toBe("user already exists")
+                            expect(users.body.msg).toBe("Invalid data received")
                         })
                 })
             })
@@ -243,13 +207,8 @@ describe("/api", () => {
                     test("user does not exist", () => {
                         return request(app).get("/api/users/dogman").expect(404)
                             .then(response => {
-                                expect(response.body.msg).toBe("user does not exist")
+                                expect(response.body.msg).toBe("Invalid endpoint")
                             })
-                    })
-
-                    test("safe against SQL Injection", () => {
-                        return request(app).get("/api/users/'DROP TABLE articles;").expect(404)
-                            .then(response => expect(response.body.msg).toBe("user does not exist"))
                     })
                 })
             })
@@ -281,29 +240,12 @@ describe("/api", () => {
                                 })
                             })
                     })
-
-                    test("safe against SQL Injection #1", async() => {
-                        await request(app).patch("/api/users/lurker")
-                            .send({ name: 'DROP TABLE articles;', avatar_url: "DROP TABLE articles;" })
-                            .expect(200)
-                            .then(response => {
-                                expect(response.body.users[0]).toEqual({
-                                    username: "lurker",
-                                    name: "DROP TABLE articles;",
-                                    avatar_url: "DROP TABLE articles;"
-                                })
-                            })
-                        await db.query("SELECT * FROM articles;")
-                            .then(response => {
-                                expect(response.rows).not.toHaveLength(0)
-                            })
-                    })
                 })
                 describe("status 400 - Bad Request", () => {
                     test("nothing is sent to update", () => {
                         return request(app).patch("/api/users/lurker").send({}).expect(400)
                             .then(response => {
-                                expect(response.body.msg).toBe("No information to update")
+                                expect(response.body.msg).toBe("Invalid data received")
                             })
                     })
 
@@ -312,7 +254,7 @@ describe("/api", () => {
                             .send({ username: "Bingo", avatar_url: "new", name: "lichen" })
                             .expect(400)
                             .then(response => {
-                                expect(response.body.msg).toBe("user does not exist")
+                                expect(response.body.msg).toBe("Invalid data received")
                             })
                     })
 
@@ -321,21 +263,7 @@ describe("/api", () => {
                             .send({ username: "rogersop" })
                             .expect(400)
                             .then(response => {
-                                expect(response.body.msg).toBe("user already exists")
-                            })
-                    })
-
-                    test("safe against SQL Injection #2", async() => {
-                        await request(app).patch("/api/users/'DROP TABLE articles;'")
-                            .send({ avatar_url: "none", name: "Jon" })
-                            .expect(400)
-                            .then(response => {
-                                expect(response.body.msg).toBe("No information to update")
-                            })
-
-                        await db.query("SELECT * FROM articles")
-                            .then(response => {
-                                expect(response.rows).not.toHaveLength(0)
+                                expect(response.body.msg).toBe("Invalid data received")
                             })
                     })
                 })
@@ -348,6 +276,14 @@ describe("/api", () => {
                         await db.query("SELECT * FROM users WHERE username = 'lurker';")
                             .then(response => {
                                 expect(response.body).toBe(undefined)
+                            })
+                    })
+
+                    test("if user does delete, all comments and articles are still available on a deleted_user username", async() => {
+                        await request(app).delete("/api/users/rogersop").expect(204)
+                        await db.query("SELECT * FROM articles WHERE author = 'deleted_user'")
+                            .then(response => {
+                                expect(response.rows.length).not.toBe(0)
                             })
                     })
                 })
@@ -506,7 +442,6 @@ describe("/api", () => {
                 test("rejects when passed invalid queries - sort_by", () => {
                     return request(app).get("/api/articles?sort_by=Bingo").expect(400)
                         .then(response => {
-                            console.log(response.body)
                             expect(response.body.msg).toBe("Invalid query")
                         })
                 })
@@ -543,7 +478,7 @@ describe("/api", () => {
             })
         })
 
-        describe("/ - POST", () => {
+        describe.only("/ - POST", () => {
             describe("status 201 - Created", () => {
                 test("returns the newly created article and article is in database", async() => {
                     await request(app).post("/api/articles")
@@ -584,7 +519,7 @@ describe("/api", () => {
                         .send({ title: "Bingo!", body: "Some missing info soon", topic: "cats" })
                         .expect(400)
                         .then(response => {
-                            expect(response.body.msg).toBe("ensure object is {title: String, body: String, author: String, topic: String}")
+                            expect(response.body.msg).toBe("Invalid data received")
                         })
                 })
 
@@ -592,7 +527,7 @@ describe("/api", () => {
                     return request(app).post("/api/articles")
                         .send({ title: "Bingo", body: "Bongo", author: "lurker", topic: "Bingo" })
                         .expect(400)
-                        .then(response => expect(response.body.msg).toBe("author and topic must exist"))
+                        .then(response => expect(response.body.msg).toBe("Invalid data received"))
                 })
             })
         })
@@ -621,7 +556,7 @@ describe("/api", () => {
                     test("returns an error when id is not of proper type", () => {
                         return request(app).get("/api/articles/dog").expect(400)
                             .then(response => {
-                                expect(response.body.msg).toBe("article_id is not of correct type")
+                                expect(response.body.msg).toBe("Invalid endpoint")
                             })
                     })
                 })
@@ -630,7 +565,7 @@ describe("/api", () => {
                     test("returns an error when id is not present", () => {
                         return request(app).get("/api/articles/100000").expect(404)
                             .then(response => {
-                                expect(response.body.msg).toBe("article_id does not exist")
+                                expect(response.body.msg).toBe("Endpoint does not exist")
                             })
                     })
                 })
@@ -771,7 +706,7 @@ describe("/api", () => {
                         test("returns error when article_id is of correct type but does not exist", () => {
                             return request(app).get("/api/articles/100000/comments").expect(404)
                                 .then(response => {
-                                    expect(response.body.msg).toBe("article does not exist")
+                                    expect(response.body.msg).toBe("Article does not exist")
                                 })
                         })
                     })

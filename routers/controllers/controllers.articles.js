@@ -13,16 +13,13 @@ const getArticles = (request, response, next) => {
 }
 
 const getArticleByID = (request, response, next) => {
+    const { article_id } = request.params;
     selectArticleByID(article_id)
         .then(articles => {
-            if (!articles) {
-                next({ code: 404, msg: "article_id does not exist" });
-            } else {
-                response.status(200).send(articles)
-            }
+            response.status(200).send(articles)
         })
         .catch(error => {
-            next({ code: 400, msg: "article_id is not of correct type" });
+            next(error)
         })
 }
 
@@ -43,7 +40,6 @@ const getCommentsByArticleID = (request, response, next) => {
     const commentsInfo = request.query
     selectCommentsByArticleID(article_id, commentsInfo)
         .then(comments => {
-            console.log(comments)
             response.status(200).send({ comments })
         })
         .catch(error => {
@@ -70,13 +66,7 @@ const postArticle = (request, response, next) => {
             response.status(201).send({ articles })
         })
         .catch(error => {
-            if (error.code === "23502") {
-                next({ code: 400, msg: "ensure object is {title: String, body: String, author: String, topic: String}" })
-            } else if (error.code === "23503") {
-                next({ code: 400, msg: "author and topic must exist" })
-            } else {
-                next(error)
-            }
+            next(error)
         })
 }
 

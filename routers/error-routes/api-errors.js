@@ -16,6 +16,8 @@ const customErrors = (error, request, response, next) => {
         response.status(400).send({ code: 400, msg: "Invalid data received" })
     } else if (error.code === "23503") {
         response.status(400).send({ code: 400, msg: "Invalid data received" });
+    } else if (error.code === "23505") {
+        response.status(400).send({ code: 400, msg: "Invalid data received" })
     } else if (error.code === "42601") {
         response.status(400).send({ code: 400, msg: "Invalid query" })
     } else if (error.code === "42703") {
