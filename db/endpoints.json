@@ -1,25 +1,200 @@
 {
-    "GET /api": {
-        "description": "serves up a json representation of all the available endpoints of the api"
-    },
-    "GET /api/topics": {
-        "description": "serves an array of all topics",
-        "queries": [],
-        "exampleResponse": {
-            "topics": [{ "slug": "football", "description": "Footie!" }]
+    "/api": {
+        "GET": {
+            "description": "serves up a json representation of all the available endpoints of the api"
         }
     },
-    "GET /api/articles": {
-        "description": "serves an array of all topics",
-        "queries": ["author", "topic", "sort_by", "order"],
-        "exampleResponse": {
-            "articles": [{
+    "/api/topics": {
+        "GET": {
+            "description": "serves an array of all topics",
+            "queries": [],
+            "exampleResponse": {
+                "topics": [{ "slug": "football", "description": "Footie!" }]
+            }
+        },
+
+        "POST": {
+            "description": "adds a topic to the database",
+            "queries": [],
+            "exampleResponse": {
+                "topics": { "slug": "dogs", "description": "better than cats!" }
+            }
+        }
+    },
+    "/api/topics/:slug": {
+        "PATCH": {
+            "description": "edits a topic description",
+            "queries": [],
+            "exampleResponse": {
+                "topics": { "slug": "football", "description": "Not as good as rugby" }
+            }
+        },
+        "DELETE": {
+            "description": "deletes a topic from the database",
+            "queries": [],
+            "exampleResponses": {}
+        }
+    },
+    "/api/users": {
+        "GET": {
+            "description": "serves a list of live users",
+            "queries": [],
+            "exampleResponse": {
+                "users": [{
+                    "username": "tickle122",
+                    "avatar_url": "https://vignette.wikia.nocookie.net/mrmen/images/d/d6/Mr-Tickle-9a.png/revision/latest?cb=20180127221953"
+                }]
+            }
+        },
+        "POST": {
+            "description": "adds a user to the database",
+            "queries": [],
+            "exampleResponse": {}
+        }
+    },
+    "/api/users/:username": {
+        "GET": {
+            "description": "serves a specific user by their username",
+            "queries": [],
+            "exampleResponse": {
+                "users": {
+                    "username": "jessjelly",
+                    "avatar_url": "https://vignette.wikia.nocookie.net/mrmen/images/4/4f/MR_JELLY_4A.jpg/revision/latest?cb=20180104121141",
+                    "name": "Jess Jelly"
+                }
+            }
+        },
+        "PATCH": {
+            "description": "edits a user given their username",
+            "queries": [],
+            "exampleResponse": {
+                "users": {
+                    "username": "jessjelly",
+                    "avatar_url": "no_avatar",
+                    "name": "Jess Jelly"
+                }
+
+            }
+        },
+        "DELETE": {
+            "description": "deletes a user given their username",
+            "queries": [],
+            "exampleResponses": {}
+        }
+    },
+    "/api/articles": {
+        "GET": {
+            "description": "serves an array of all topics",
+            "queries": ["author", "topic", "sort_by", "order"],
+            "exampleResponse": {
+                "articles": [{
+                    "title": "Seafood substitutions are increasing",
+                    "topic": "cooking",
+                    "author": "weegembump",
+                    "votes": 0,
+                    "body": "Text from the article..",
+                    "created_at": "2020-11-07T00:00:00.000Z",
+                    "comment_count": "12"
+                }]
+            }
+        },
+        "POST": {
+            "description": "adds an article to the database",
+            "queries": [],
+            "exampleResponse": {
+                "article_id": 1,
+                "title": "Running a Node App",
+                "body": "This is part two of a series on how to get up and running with Systemd and Node.js. This part dives deeper into how to successfully run your app with systemd long-term, and how to set it up in a production environment.",
+                "votes": 0,
+                "topic": "coding",
+                "author": "jessjelly",
+                "created_at": "2020-11-07T00:00:00.000Z",
+                "comment_count": "8"
+            }
+        }
+    },
+    "/api/articles/:article_id": {
+        "GET": {
+            "description": "serves an article using the article_id",
+            "queries": [],
+            "exampleResponse": {
                 "title": "Seafood substitutions are increasing",
                 "topic": "cooking",
                 "author": "weegembump",
+                "votes": 0,
                 "body": "Text from the article..",
-                "created_at": 1527695953341
-            }]
+                "created_at": "2020-11-07T00:00:00.000Z",
+                "comment_count": "12"
+            }
+        },
+        "PATCH": {
+            "description": "increases the votes value by some number of an article referenced by the article_id",
+            "queries": [],
+            "exampleResponse": {
+                "title": "Seafood substitutions are increasing",
+                "topic": "cooking",
+                "author": "weegembump",
+                "votes": 1,
+                "body": "Text from the article..",
+                "created_at": "2020-11-07T00:00:00.000Z",
+                "comment_count": "12"
+            }
+        },
+        "DELETE": {
+            "description": "deletes an article that matches the desired article_id",
+            "queries": [],
+            "exampleResponses": {}
+        }
+    },
+    "/api/articles/article_id/comments": {
+        "GET": {
+            "description": "serves a list of comments with an associated article",
+            "queries": ["limit", "page"],
+            "exampleResponse": {
+                "comments": [{
+                    "comment_id": 31,
+                    "title": "Running a Node App",
+                    "author": "weegembump",
+                    "article_id": 1,
+                    "votes": 11,
+                    "body": "Sit sequi odio suscipit. Iure quisquam qui alias distinctio eos officia enim aut sit. Corrupti ut praesentium ut iste earum itaque qui. Dolores in ab rerum consequuntur. Id ab aliquid autem dolore."
+                }]
+            }
+        },
+        "POST": {
+            "description": "adds a comment to an article",
+            "queries": [],
+            "exampleResponse": {
+                "comment_id": 32,
+                "title": "New comment",
+                "author": "weegembump",
+                "article_id": 1,
+                "votes": 0,
+                "body": "My first comment."
+
+            }
+        }
+    },
+    "/api/comments": {
+        "GET": {
+            "description": "serves an array of all the comments",
+            "queries": ["limit", "page"],
+            "exampleResponse": {
+                "comments": [{
+                    "comment_id": 1,
+                    "author": "tickle122",
+                    "title": "The People Tracking Every Touch, Pass And Tackle in the World Cup",
+                    "votes": -1,
+                    "body": "Itaque quisquam est similique et est perspiciatis reprehenderit voluptatem autem. Voluptatem accusantium eius error adipisci quibusdam doloribus."
+                }]
+            }
+        }
+    },
+    "/api/comments/:comment_id": {
+        "DELETE": {
+            "description": "deletes an object of a specific comment_id",
+            "queries": [],
+            "exampleResponses": {}
         }
     }
 }
