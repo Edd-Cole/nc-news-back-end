@@ -5,13 +5,14 @@ apiArticles.route("/")
     .get(getArticles)
     .post(postArticle);
 
-apiArticles.route("/:title")
-    .get(getArticleByTitle)
 
 apiArticles.route("/:article_id")
     .get(getArticleByID)
     .patch(patchArticleByID)
     .delete(deleteArticleByID)
+
+apiArticles.route("/:title")
+    .get(getArticleByTitle)
 
 apiArticles.route("/:article_id/comments")
     .get(getCommentsByArticleID)

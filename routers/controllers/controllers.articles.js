@@ -13,8 +13,12 @@ const getArticles = (request, response, next) => {
 }
 
 const getArticleByID = (request, response, next) => {
-    console.log("issue!!!!")
     const { article_id } = request.params;
+    if(/[a-z]/g.test(article_id)) {
+       return next();
+    }
+
+
     selectArticleByID(article_id)
         .then(articles => {
             response.status(200).send(articles)
@@ -83,10 +87,11 @@ const deleteArticleByID = (request, response, next) => {
 }
 
 const getArticleByTitle = (request, response, next) => {
+    console.log(request)
     let { title } = request.params;
-    if (!/[a-z]/gi.test(title)) {
-        return next(request)
-    }
+    // if (!/[a-z]/gi.test(title)) {
+    //     return next(request)
+    // }
 
     title = title.replace(/\_/g, " ");
 

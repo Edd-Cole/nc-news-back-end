@@ -167,7 +167,7 @@ const removeArticleByID = async(article_id) => {
 const selectArticleByTitle = (title) => {
     return db.query(`
     SELECT articles.*, COUNT(comments.comment_id) AS comment_count FROM articles
-    JOIN comments
+    LEFT JOIN comments
     ON articles.article_id = comments.article_id
     WHERE title = $1
     GROUP BY articles.article_id
