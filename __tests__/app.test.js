@@ -790,6 +790,49 @@ describe("/api", () => {
                 })
             })
         })
+
+        describe("/:title", () => {
+            describe("/ - GET", () => {
+                describe("status 200 - Success", () => {
+                    test.only("returns an article when title is searched for instead of article_id", () => {
+                        return request(app).get("/api/articles/Living_in_the_shadow_of_a_great_man").expect(200)
+                            .then(response => {
+                                expect(response.body).toEqual({
+                                    article_id: 1,
+                                    title: 'Living in the shadow of a great man',
+                                    topic: 'mitch',
+                                    author: 'butter_bridge',
+                                    body: 'I find this existence challenging',
+                                    created_at: expect.any(String),
+                                    votes: 100,
+                                    comment_count: expect.any(String)
+                                })
+                            })
+                    })
+                    test.only("title exists in database but has no comments", () => {
+                        return request(app).get("/api/articles/Eight_pug_gifs_that_remind_me_of_mitch")
+                            .expect(200)
+                            .then(response => {
+                                expect(response.body.articles).toEqual({
+                                    article_id: 3,
+                                    title: 'Eight pug gifs that remind me of mitch',
+                                    topic: 'mitch',
+                                    author: 'icellusedkars',
+                                    body: 'some gifs',
+                                    created_at: expect.any(String),
+                                    votes: 0,
+                                    comment_count: 0
+                                })
+                            })
+                    })
+                })
+                describe("status 404 - Page Not Found", () => {
+                    test("title does not exist in the database", () => {
+
+                    })
+                })
+            })
+        })
     })
 
     describe("/comments", () => {

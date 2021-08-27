@@ -41,8 +41,7 @@ const selectArticleByID = async(article_id) => {
             if (articles.rows.length === 0) return Promise.reject({ code: 404, msg: "Endpoint does not exist" })
         })
     return db.query(`
-    SELECT articles.article_id, articles.title, articles.body, articles.votes, articles.topic,
-    articles.author, articles.created_at, COUNT(comments.comment_id) AS comment_count
+    SELECT articles.*, COUNT(comments.comment_id) AS comment_count
     FROM articles
     JOIN comments
     ON articles.article_id = comments.article_id
@@ -165,6 +164,20 @@ const removeArticleByID = async(article_id) => {
         .then(articles => { return articles })
 }
 
+const selectArticleByTitle = (title) => {
+    return db.query(`
+    SELECT articles.*, COUNT(comments.comment_id) AS comment_count FROM articles
+    JOIN comments
+    ON articles.article_id = comments.article_id
+    WHERE title = $1
+    GROUP BY articles.article_id
+    `, [title])
+        .then(articles => {
+            console.log(articles.rows)
+            return articles.rows[0]
+        })
+}
+
 module.exports = {
     removeArticleByID,
     selectArticles,
@@ -172,5 +185,13 @@ module.exports = {
     updateArticleByID,
     selectCommentsByArticleID,
     addCommentByArticleID,
-    addArticle
+    addArticle,
+    selectArticleByTitle
 };
+
+// SELECT articles.*, COUNT(comments.comment_id) AS comment_count
+// FROM articles
+// JOIN comments
+// ON articles.article_id = comments.article_id
+// WHERE title = $1
+// GROUP BY articles.article_id

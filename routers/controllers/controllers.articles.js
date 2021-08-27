@@ -1,4 +1,4 @@
-const { selectArticles, selectArticleByID, updateArticleByID, selectCommentsByArticleID, addCommentByArticleID, addArticle, removeArticleByID } = require("../models/models.articles.js");
+const { selectArticles, selectArticleByID, updateArticleByID, selectCommentsByArticleID, addCommentByArticleID, addArticle, removeArticleByID, selectArticleByTitle } = require("../models/models.articles.js");
 
 const getArticles = (request, response, next) => {
     const queries = request.query
@@ -13,6 +13,7 @@ const getArticles = (request, response, next) => {
 }
 
 const getArticleByID = (request, response, next) => {
+    console.log("issue!!!!")
     const { article_id } = request.params;
     selectArticleByID(article_id)
         .then(articles => {
@@ -81,6 +82,24 @@ const deleteArticleByID = (request, response, next) => {
         })
 }
 
+const getArticleByTitle = (request, response, next) => {
+    let { title } = request.params;
+    if (!/[a-z]/gi.test(title)) {
+        return next(request)
+    }
+
+    title = title.replace(/\_/g, " ");
+
+    selectArticleByTitle(title)
+        .then(articles => {
+            response.status(200).send(articles)
+        })
+        .catch((error) => {
+            console.log(error)
+            next(request)
+        })
+}
+
 module.exports = {
     getArticles,
     getArticleByID,
@@ -88,5 +107,6 @@ module.exports = {
     getCommentsByArticleID,
     postCommentByArticleID,
     postArticle,
-    deleteArticleByID
+    deleteArticleByID,
+    getArticleByTitle
 };
