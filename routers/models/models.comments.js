@@ -16,4 +16,22 @@ const removeComment = (comment_id) => {
         .then(() => { return })
 }
 
-module.exports = { selectComments, removeComment };
+const updateComment = async(comment_id, votes) => {
+    console.log(votes)
+    let commentVotes = await db.query(`SELECT votes FROM comments WHERE comment_id = $1;`, [comment_id]);
+
+    console.log(commentVotes.rows[0].votes, votes)
+    commentVotes = parseInt(commentVotes.rows[0].votes) + votes;
+    console.log(commentVotes)
+
+
+    return db.query(`UPDATE comments 
+    SET votes = $2
+    WHERE comment_id = $1
+    RETURNING *;`, [comment_id, commentVotes])
+    .then(comments => {
+        return comments.rows;
+    })
+}
+
+module.exports = { selectComments, removeComment, updateComment };

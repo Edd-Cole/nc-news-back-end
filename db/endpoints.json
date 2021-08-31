@@ -146,7 +146,7 @@
             "exampleResponses": {}
         }
     },
-    "/api/articles/article_id/comments": {
+    "/api/articles/:article_id/comments": {
         "GET": {
             "description": "serves a list of comments with an associated article",
             "queries": ["limit", "page"],

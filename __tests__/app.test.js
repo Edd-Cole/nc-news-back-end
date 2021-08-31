@@ -893,6 +893,26 @@ describe("/api", () => {
         })
 
         describe("/:comment_id", () => {
+            describe("/ - PATCH", () => {
+                describe("status 200 - Success", () => {
+                    test("returns a comment object with the vote value increased by the value given as an argument", () => {
+                        return request(app).patch("/api/comments/1").send({inc_votes: 1})
+                        .expect(200)
+                        .then((response) => {
+                            expect(response.body).toMatchObject({
+                                comment_id: expect.any(Number),
+                                author: expect.any(String),
+                                article_id: expect.any(Number),
+                                votes: expect.any(Number),
+                                body: expect.any(String),
+                                created_at: expect.any(String)
+                            })
+                            expect(response.body.votes).toBe(17)
+                        })
+                    })
+                })
+            })
+
             describe("/ - DELETE", () => {
                 describe("status 204 - Success: No Content", () => {
                     test("deletes a comment from the database", async() => {
