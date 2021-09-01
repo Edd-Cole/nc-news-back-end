@@ -910,6 +910,40 @@ describe("/api", () => {
                             expect(response.body.votes).toBe(17)
                         })
                     })
+
+                    test("returns a comment object when passed multiple values to update", () => {
+                        return request(app).patch("/api/comments/1").send({inc_votes: 1, body: "No longer here!"}).expect(200)
+                        .then(response => {
+                            expect(response.body).toMatchObject({
+                                comment_id: expect.any(Number),
+                                author: expect.any(String),
+                                article_id: expect.any(Number),
+                                votes: expect.any(Number),
+                                body: expect.any(String),
+                                created_at: expect.any(String)
+                            })
+                            expect(response.body.votes).toBe(17);
+                            expect(response.body.body).toBe("No longer here! (edited)");
+                        })
+                    })
+                })
+
+                describe("status 400 - Bad Request", () => {
+                    test("returns  a bad request when the comment_id is not of the correct type", () => {
+                        return request(app).patch("/api/comments/dog").send({inc_votes: 1}).expect(400)
+                        .then((response) => {
+                            expect(response.body.msg).toBe("Invalid endpoint")
+                        })
+                    })
+                })
+
+                describe("status 404 - Page Not Found", () => {
+                    test("returns a page not found error when the passed comment_id does not exist in the database but is of the correct type", () => {
+                        return request(app).patch("/api/comments/100000").send({inc_votes: 1}).expect(404)
+                        .then(response => {
+                            expect(response.body.msg).toBe("Endpoint does not exist");
+                        })
+                    })
                 })
             })
 

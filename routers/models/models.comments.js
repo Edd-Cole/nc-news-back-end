@@ -16,19 +16,32 @@ const removeComment = (comment_id) => {
         .then(() => { return })
 }
 
-const updateComment = async(comment_id, votes) => {
-    console.log(votes)
-    let commentVotes = await db.query(`SELECT votes FROM comments WHERE comment_id = $1;`, [comment_id]);
+const updateComment = async(comment_id, votes, body) => {
+    let commentInfo = await db.query(`SELECT votes, body FROM comments WHERE comment_id = $1;`, [comment_id])
+    .then(response => {
+        if(response.rows.length === 0) {
+            return Promise.reject({code: 404, msg: "Endpoint does not exist"})
+        }
+        return response.rows[0]
+    })
+    .catch(error => {
+        return Promise.reject(error);
+    })
 
-    console.log(commentVotes.rows[0].votes, votes)
-    commentVotes = parseInt(commentVotes.rows[0].votes) + votes;
-    console.log(commentVotes)
+    //Build new update values for votes and body
+    let commentVotes = parseInt(commentInfo.votes) + votes;
+    let commentBody = commentInfo.body;
+    
+    if(body) {
+        commentBody = body + " (edited)";
+    } 
 
-
+    //Update database with values
     return db.query(`UPDATE comments 
-    SET votes = $2
+    SET votes = $2,
+    body = $3
     WHERE comment_id = $1
-    RETURNING *;`, [comment_id, commentVotes])
+    RETURNING *;`, [comment_id, commentVotes, commentBody])
     .then(comments => {
         return comments.rows;
     })

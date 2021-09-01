@@ -173,7 +173,6 @@ const selectArticleByTitle = (title) => {
     GROUP BY articles.article_id
     `, [title])
         .then(articles => {
-            console.log(articles.rows)
             return articles.rows[0]
         })
 }

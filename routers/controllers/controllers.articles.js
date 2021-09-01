@@ -87,11 +87,7 @@ const deleteArticleByID = (request, response, next) => {
 }
 
 const getArticleByTitle = (request, response, next) => {
-    console.log(request)
     let { title } = request.params;
-    // if (!/[a-z]/gi.test(title)) {
-    //     return next(request)
-    // }
 
     title = title.replace(/\_/g, " ");
 
