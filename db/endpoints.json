@@ -149,7 +149,7 @@
     "/api/articles/:article_id/comments": {
         "GET": {
             "description": "serves a list of comments with an associated article",
-            "queries": ["limit", "page"],
+            "queries": ["limit", "page", "sort_by", "order"],
             "exampleResponse": {
                 "comments": [{
                     "comment_id": 31,

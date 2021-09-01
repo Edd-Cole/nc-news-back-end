@@ -673,10 +673,18 @@ describe("/api", () => {
                                 })
                         })
 
+                        test("returns the list of comments organised by a value in ascending/descending order by a query of order and sort_by", () => {
+                            return request(app).get("/api/articles/1/comments?sort_by=votes&order=desc").expect(200)
+                            .then(response => {
+                                expect(response.body.comments.length).not.toBe(0);
+                                expect(response.body.comments).toBeSortedBy("votes", {descending: true})
+                            })
+                        })
+
                         test("return comments from the specified page with a limit using a page query", () => {
                             return request(app).get("/api/articles/1/comments?limit=1&page=2").expect(200)
                                 .then(response => {
-                                    expect(response.body.comments[0].comment_id).toBe(3);
+                                    expect(response.body.comments[0].comment_id).toBe(18);
                                     expect(response.body.comments[1]).toBe(undefined)
                                 })
                         })

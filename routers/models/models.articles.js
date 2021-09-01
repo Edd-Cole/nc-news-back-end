@@ -84,7 +84,7 @@ const updateArticleByID = async(article_id, inc_votes) => {
         })
 }
 
-const selectCommentsByArticleID = async(article_id, { limit = 10, page = 1 }) => {
+const selectCommentsByArticleID = async(article_id, { limit = 10, page = 1, sort_by = "votes", order = "DESC" }) => {
     await db.query("SELECT article_id FROM articles WHERE article_id = $1", [article_id])
         .catch(error => {
             return Promise.reject({ code: 400, msg: "Invalid type for endpoint" })
@@ -102,7 +102,9 @@ const selectCommentsByArticleID = async(article_id, { limit = 10, page = 1 }) =>
     JOIN comments
     ON articles.article_id = comments.article_id
     WHERE articles.article_id = $1
-    LIMIT ${limit} OFFSET ${page}`, [article_id])
+    ORDER BY ${sort_by} ${order}
+    LIMIT ${limit} OFFSET ${page}
+    `, [article_id])
         .then(response => {
             return response.rows;
         })
