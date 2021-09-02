@@ -436,6 +436,16 @@ describe("/api", () => {
                         })
                 })
 
+                test("returns an array of articles filtered by the author name", () => {
+                    return request(app).get("/api/articles?author=butter_bridge").expect(200)
+                    .then(response => {
+                        expect(response.body.articles).not.toBe(0);
+                        response.body.articles.map(article => {
+                            expect(article.author).toBe("butter_bridge");
+                        })
+                    })
+                })
+
                 test("returns an empty array of articles when a topic query is valid but has no articles associated with it", () => {
                     return request(app).get("/api/articles?topic=paper").expect(200)
                         .then(response => {

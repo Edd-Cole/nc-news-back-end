@@ -2,7 +2,7 @@ const db = require("../../db/connection.js");
 const articles = require("../../db/data/test-data/articles.js");
 const users = require("../../db/data/test-data/users.js");
 
-const selectArticles = async({ sort_by = "created_at", order_by = "DESC", topic, limit = 10, page = 1 }) => {
+const selectArticles = async({ sort_by = "created_at", order_by = "DESC", topic, limit = 10, page = 1, author }) => {
     const topics = await db.query("SELECT slug FROM topics;")
         .then(response => {
             const topics = response.rows.map(topic => topic.slug)
@@ -17,12 +17,15 @@ const selectArticles = async({ sort_by = "created_at", order_by = "DESC", topic,
     let topicString = topic ? `WHERE articles.topic = '${topic}'` : "";
     page = (page - 1) * limit;
 
+    let authorQuery = author ? `WHERE articles.author = '${author}'` : "";
+
     return db.query(`
     SELECT articles.article_id, articles.title, articles.body, articles.votes, articles.topic, articles.author, articles.created_at, COUNT(comments.comment_id) AS comment_count
     FROM articles
     LEFT JOIN comments
     ON articles.article_id = comments.article_id
     ${topicString}
+    ${authorQuery}
     GROUP BY articles.article_id
     ORDER BY ${sort_by} ${order_by}
     LIMIT ${limit} OFFSET ${page};`)
