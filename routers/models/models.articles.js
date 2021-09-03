@@ -38,7 +38,7 @@ const selectArticles = async({ sort_by = "created_at", order_by = "DESC", topic,
 }
 
 const selectArticleByID = async(article_id) => {
-    if (!article_id) return Promise.reject({ code: 400, msg: "Invalid endpoint" })
+    if (!article_id) return Promise.reject({ code: 400, msg: "Invalid endpoint", location: "in if" })
     await db.query("SELECT article_id FROM articles WHERE article_id = $1", [article_id])
         .then(articles => {
             if (articles.rows.length === 0) return Promise.reject({ code: 404, msg: "Endpoint does not exist" })
@@ -53,7 +53,7 @@ const selectArticleByID = async(article_id) => {
     `, [article_id])
         .then(articles => {
             if (!articles.rows[0]) {
-                return Promise.reject({ code: 400, msg: "Invalid endpoint" })
+                return Promise.reject({ code: 400, msg: "Invalid endpoint", location: "in return" })
             }
             return articles.rows[0];
         })
