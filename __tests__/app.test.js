@@ -558,6 +558,42 @@ describe("/api", () => {
                                 })
                             })
                     })
+
+                    test.only("returns the newly posted article when a new article is added into the database", async() => {
+                        await request(app).post("/api/articles")
+                        .send({
+                            title: "Who ate all the cats?",
+                            body: "I am going to create a new song to rival 'Who let the dogs out!'",
+                            topic: "cats",
+                            author: "lurker"
+                        })
+                        .expect(201)
+                        .then(response => {
+                            expect(response.body.articles[0]).toMatchObject({
+                                article_id: expect.any(Number),
+                                title: "Who ate all the cats?",
+                                body: "I am going to create a new song to rival 'Who let the dogs out!'",
+                                topic: "cats",
+                                author: "lurker",
+                                votes: 0,
+                                created_at: expect.anything(),
+                            })
+                        })
+
+                        return request(app).get("/api/articles/13").expect(200)
+                        .then(response => {
+                            expect(response.body).toEqual({
+                                article_id: 13,
+                                title: "Who ate all the cats?",
+                                body: "I am going to create a new song to rival 'Who let the dogs out!'",
+                                comment_count: "0",
+                                topic: "cats",
+                                author: "lurker",
+                                votes: 0,
+                                created_at: expect.anything(),
+                            })
+                        })
+                    })
                 })
 
                 // describe("status 400 - Bad Request", () => {
