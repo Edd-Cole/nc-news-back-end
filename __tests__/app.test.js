@@ -559,7 +559,7 @@ describe("/api", () => {
                             })
                     })
 
-                    test.only("returns the newly posted article when a new article is added into the database", async() => {
+                    test("returns the newly posted article when a new article is added into the database", async() => {
                         await request(app).post("/api/articles")
                         .send({
                             title: "Who ate all the cats?",
@@ -699,7 +699,8 @@ describe("/api", () => {
                                             author: expect.any(String),
                                             article_id: 1,
                                             votes: expect.any(Number),
-                                            body: expect.any(String)
+                                            body: expect.any(String),
+                                            created_at: expect.any(String)
                                         })
                                     })
                                 })

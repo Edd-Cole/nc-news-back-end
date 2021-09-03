@@ -100,7 +100,7 @@ const selectCommentsByArticleID = async(article_id, { limit = 10, page = 1, sort
     limit = parseInt(limit);
     page = parseInt((page - 1) * limit);
     return db.query(`
-    SELECT comment_id, articles.title, comments.author, articles.article_id, comments.votes, comments.body
+    SELECT comment_id, articles.title, comments.author, articles.article_id, comments.votes, comments.body, comments.created_at
     FROM articles
     JOIN comments
     ON articles.article_id = comments.article_id
