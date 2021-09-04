@@ -29,9 +29,9 @@ const updateComment = async(comment_id, votes, body) => {
     })
 
     //Build new update values for votes and body
-    let commentVotes = parseInt(commentInfo.votes) + votes;
+    let commentVotes = commentInfo.votes + votes || commentInfo.votes;
     let commentBody = commentInfo.body;
-    
+   
     if(body) {
         commentBody = body + " (edited)";
     } 

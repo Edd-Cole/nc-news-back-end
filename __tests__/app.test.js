@@ -1002,6 +1002,22 @@ describe("/api", () => {
                         })
                     })
 
+                    test("returns a comment object with the updated comment body", () => {
+                        return request(app).patch("/api/comments/1").send({body: "No longer here!"}).expect(200)
+                        .then(response => {
+                            expect(response.body).toMatchObject({
+                                comment_id: expect.any(Number),
+                                author: expect.any(String),
+                                article_id: expect.any(Number),
+                                votes: expect.any(Number),
+                                body: expect.any(String),
+                                created_at: expect.any(String)
+                            })
+                            expect(response.body.votes).toBe(16);
+                            expect(response.body.body).toBe("No longer here! (edited)");
+                        })
+                    })
+
                     test("returns a comment object when passed multiple values to update", () => {
                         return request(app).patch("/api/comments/1").send({inc_votes: 1, body: "No longer here!"}).expect(200)
                         .then(response => {
