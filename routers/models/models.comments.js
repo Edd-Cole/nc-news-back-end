@@ -47,4 +47,17 @@ const updateComment = async(comment_id, votes, body) => {
     })
 }
 
-module.exports = { selectComments, removeComment, updateComment };
+const selectCommentByCommentId = (comment_id) => {
+    return db.query("SELECT * FROM comments WHERE comment_id = $1",[comment_id])
+    .then(comment => {
+        if(comment.rows.length !== 0)
+            return comment.rows[0]
+        else
+            return Promise.reject({code: 404, msg: "Endpoint does not exist"})
+    })
+    .catch(error => {
+        return Promise.reject(error);
+    })
+}
+
+module.exports = { selectComments, removeComment, updateComment, selectCommentByCommentId };

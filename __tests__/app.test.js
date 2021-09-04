@@ -948,6 +948,42 @@ describe("/api", () => {
         })
 
         describe("/:comment_id", () => {
+            describe("/ - GET", () => {
+                describe("status 200 - Success", () => {
+                    test("returns an individual comment by the comment_id", () => {
+                        return request(app).get("/api/comments/1").expect(200)
+                        .then(response => {
+                            expect(response.body).toEqual({
+                                "article_id": 9,
+                                "author": "butter_bridge",
+                                "body": "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
+                                "comment_id": 1,
+                                "created_at": "2020-04-06T12:17:00.000Z",
+                                "votes": 16,
+                            })
+                        })
+                    })
+                })
+
+                describe("Status 400 - Bad Request", () => {
+                    test("errors when comment_id is not of the correct type", () => {
+                        return request(app).get("/api/comments/dog").expect(400)
+                        .then(response => {
+                            expect(response.body.msg).toBe("Invalid endpoint")
+                        })
+                    })
+                })
+
+                describe("Status 404 - Page Not Found", () => {
+                    test("Comment not found when id is of correct type but does not exist in database", () => {
+                        return request(app).get("/api/comments/10000").expect(404)
+                        .then(response => {
+                            expect(response.body.msg).toBe("Endpoint does not exist");
+                        })
+                    })
+                })
+            })
+
             describe("/ - PATCH", () => {
                 describe("status 200 - Success", () => {
                     test("returns a comment object with the vote value increased by the value given as an argument", () => {

@@ -1,4 +1,4 @@
-const { selectComments, removeComment, updateComment } = require("../models/models.comments.js");
+const { selectComments, removeComment, updateComment, selectCommentByCommentId } = require("../models/models.comments.js");
 
 const getComments = (request, response, next) => {
     const commentsInfo = request.query;
@@ -34,4 +34,15 @@ const patchComment = (request, response, next) => {
         })
 }
 
-module.exports = { getComments, deleteComment, patchComment };
+const getCommentByCommentId = (request, response, next) => {
+    const {comment_id} = request.params;
+    selectCommentByCommentId(comment_id)
+    .then(comment => {
+        response.status(200).send(comment)
+    })
+    .catch(error => {
+        next(error)
+    })
+}
+
+module.exports = { getComments, deleteComment, patchComment, getCommentByCommentId };

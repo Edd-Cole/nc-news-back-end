@@ -17,8 +17,7 @@ const getArticleByID = (request, response, next) => {
     if(/[a-z]/g.test(article_id)) {
        return next();
     }
-
-
+    
     selectArticleByID(article_id)
         .then(articles => {
             response.status(200).send(articles)
