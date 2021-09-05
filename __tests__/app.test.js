@@ -221,7 +221,7 @@ describe("/api", () => {
                 describe("status 200 - Success", () => {
                     test("returns the updated user and updates the correct table in the database", () => {
                         return request(app).patch("/api/users/lurker")
-                            .send({ name: "Paul" })
+                            .send({ firstName: "Paul" })
                             .expect(200)
                             .then(response => {
                                 expect(response.body.users[0]).toEqual({
@@ -232,15 +232,28 @@ describe("/api", () => {
                             })
                     })
 
+                    test("returns an updated user when sent a last name", () => {
+                        return request(app).patch("/api/users/lurker")
+                        .send({lastName: "Smith"})
+                        .expect(200)
+                        .then(response => {
+                            expect(response.body.users[0]).toEqual({
+                                avatar_url: "https://www.golenbock.com/wp-content/uploads/2015/01/placeholder-user.png",
+                                name: "Smith",
+                                username: "lurker",
+                            })
+                        })
+                    })
+
                     test("returns an updated user, all fields can be changed/edited", () => {
                         return request(app).patch("/api/users/lurker")
-                            .send({ username: "Bingo", avatar_url: "new", name: "lichen" })
+                            .send({ username: "Bingo", avatar_url: "new", firstName: "lichen", lastName: "Smith" })
                             .expect(200)
                             .then(response => {
                                 expect(response.body.users[0]).toEqual({
                                     username: "Bingo",
                                     avatar_url: "new",
-                                    name: "lichen"
+                                    name: "lichen Smith"
                                 })
                             })
                     })

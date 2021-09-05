@@ -35,7 +35,10 @@ const removeUserByUsername = async(username) => {
             `, [username])
 }
 
-const updateUserByUsername = async(userName, { username, avatar_url, name }) => {
+const updateUserByUsername = async(userName, { username, avatar_url, firstName, lastName }) => {
+    firstName = firstName || "";
+    lastName = lastName || "";
+    let name = (firstName + " " + lastName).trim();
     await db.query("SELECT username FROM users WHERE username = $1", [userName])
         .then(users => {
             if (users.rows.length === 0) {
