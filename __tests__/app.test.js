@@ -94,6 +94,14 @@ describe("/api", () => {
                         })
                     })
                 })
+                describe("status 404 - Not Found", () => {
+                    test("returns an eror 404 if the slug does not exist in the database", () => {
+                        return request(app).get("/api/topics/sdfghjk").expect(404)
+                        .then(response => {
+                            expect(response.body.msg).toBe("Endpoint does not exist")
+                        })
+                    })
+                })
             })
             describe("/ - PATCH", () => {
                 describe("status 200 - Success", () => {
