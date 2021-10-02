@@ -64,6 +64,7 @@ const selectTopicByID = (slug) => {
         SELECT * FROM topics WHERE slug = $1;
     `, [slug])
     .then(data => {
+        if(!data.rows[0]) return Promise.reject({ code: 404, msg: "Endpoint does not exist"})
         return data.rows[0];
     })
 }
