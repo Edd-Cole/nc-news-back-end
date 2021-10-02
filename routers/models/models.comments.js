@@ -16,7 +16,7 @@ const removeComment = (comment_id) => {
         .then(() => { return })
 }
 
-const updateComment = async(comment_id, votes, body) => {
+const updateComment = async(comment_id, votes, body) => {   
     let commentInfo = await db.query(`SELECT votes, body FROM comments WHERE comment_id = $1;`, [comment_id])
     .then(response => {
         if(response.rows.length === 0) {

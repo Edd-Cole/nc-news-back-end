@@ -117,22 +117,21 @@ describe("/api", () => {
                     })
                 })
             })
-        })
-
-        describe("/ - DELETE", () => {
-            describe("status 204 - Success: No Content", () => {
-                test("deletes a topic from the database, cascading all articles and comment", () => {
-                    return request(app).delete("/api/topics/mitch")
-                        .expect(204)
+            describe("/ - DELETE", () => {
+                describe("status 204 - Success: No Content", () => {
+                    test("deletes a topic from the database, cascading all articles and comment", () => {
+                        return request(app).delete("/api/topics/mitch")
+                            .expect(204)
+                    })
                 })
-            })
-
-            describe("status 404 - Page Not Found", () => {
-                test("topic does not exist in the database rejects attempt to delete", () => {
-                    return request(app).delete("/api/topics/dogs").expect(404)
-                        .then(response => {
-                            expect(response.body.msg).toBe("Invalid endpoint")
-                        })
+    
+                describe("status 404 - Page Not Found", () => {
+                    test("topic does not exist in the database rejects attempt to delete", () => {
+                        return request(app).delete("/api/topics/dogs").expect(404)
+                            .then(response => {
+                                expect(response.body.msg).toBe("Invalid endpoint")
+                            })
+                    })
                 })
             })
         })
@@ -234,15 +233,15 @@ describe("/api", () => {
 
                     test("returns an updated user when sent a last name", () => {
                         return request(app).patch("/api/users/lurker")
-                        .send({lastName: "Smith"})
-                        .expect(200)
-                        .then(response => {
-                            expect(response.body.users[0]).toEqual({
-                                avatar_url: "https://www.golenbock.com/wp-content/uploads/2015/01/placeholder-user.png",
-                                name: "Smith",
-                                username: "lurker",
+                            .send({ lastName: "Smith" })
+                            .expect(200)
+                            .then(response => {
+                                expect(response.body.users[0]).toEqual({
+                                    avatar_url: "https://www.golenbock.com/wp-content/uploads/2015/01/placeholder-user.png",
+                                    name: "Smith",
+                                    username: "lurker",
+                                })
                             })
-                        })
                     })
 
                     test("returns an updated user, all fields can be changed/edited", () => {
@@ -451,12 +450,12 @@ describe("/api", () => {
 
                 test("returns an array of articles filtered by the author name", () => {
                     return request(app).get("/api/articles?author=butter_bridge").expect(200)
-                    .then(response => {
-                        expect(response.body.articles).not.toBe(0);
-                        response.body.articles.map(article => {
-                            expect(article.author).toBe("butter_bridge");
+                        .then(response => {
+                            expect(response.body.articles).not.toBe(0);
+                            response.body.articles.map(article => {
+                                expect(article.author).toBe("butter_bridge");
+                            })
                         })
-                    })
                 })
 
                 test("returns an empty array of articles when a topic query is valid but has no articles associated with it", () => {
@@ -574,38 +573,38 @@ describe("/api", () => {
 
                     test("returns the newly posted article when a new article is added into the database", async() => {
                         await request(app).post("/api/articles")
-                        .send({
-                            title: "Who ate all the cats?",
-                            body: "I am going to create a new song to rival 'Who let the dogs out!'",
-                            topic: "cats",
-                            author: "lurker"
-                        })
-                        .expect(201)
-                        .then(response => {
-                            expect(response.body.articles[0]).toMatchObject({
-                                article_id: expect.any(Number),
+                            .send({
                                 title: "Who ate all the cats?",
                                 body: "I am going to create a new song to rival 'Who let the dogs out!'",
                                 topic: "cats",
-                                author: "lurker",
-                                votes: 0,
-                                created_at: expect.anything(),
+                                author: "lurker"
                             })
-                        })
+                            .expect(201)
+                            .then(response => {
+                                expect(response.body.articles[0]).toMatchObject({
+                                    article_id: expect.any(Number),
+                                    title: "Who ate all the cats?",
+                                    body: "I am going to create a new song to rival 'Who let the dogs out!'",
+                                    topic: "cats",
+                                    author: "lurker",
+                                    votes: 0,
+                                    created_at: expect.anything(),
+                                })
+                            })
 
                         return request(app).get("/api/articles/13").expect(200)
-                        .then(response => {
-                            expect(response.body).toEqual({
-                                article_id: 13,
-                                title: "Who ate all the cats?",
-                                body: "I am going to create a new song to rival 'Who let the dogs out!'",
-                                comment_count: "0",
-                                topic: "cats",
-                                author: "lurker",
-                                votes: 0,
-                                created_at: expect.anything(),
+                            .then(response => {
+                                expect(response.body).toEqual({
+                                    article_id: 13,
+                                    title: "Who ate all the cats?",
+                                    body: "I am going to create a new song to rival 'Who let the dogs out!'",
+                                    comment_count: "0",
+                                    topic: "cats",
+                                    author: "lurker",
+                                    votes: 0,
+                                    created_at: expect.anything(),
+                                })
                             })
-                        })
                     })
                 })
 
@@ -735,10 +734,10 @@ describe("/api", () => {
 
                         test("returns the list of comments organised by a value in ascending/descending order by a query of order and sort_by", () => {
                             return request(app).get("/api/articles/1/comments?sort_by=votes&order=desc").expect(200)
-                            .then(response => {
-                                expect(response.body.comments.length).not.toBe(0);
-                                expect(response.body.comments).toBeSortedBy("votes", {descending: true})
-                            })
+                                .then(response => {
+                                    expect(response.body.comments.length).not.toBe(0);
+                                    expect(response.body.comments).toBeSortedBy("votes", { descending: true })
+                                })
                         })
 
                         test("return comments from the specified page with a limit using a page query", () => {
@@ -965,34 +964,34 @@ describe("/api", () => {
                 describe("status 200 - Success", () => {
                     test("returns an individual comment by the comment_id", () => {
                         return request(app).get("/api/comments/1").expect(200)
-                        .then(response => {
-                            expect(response.body).toEqual({
-                                "article_id": 9,
-                                "author": "butter_bridge",
-                                "body": "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
-                                "comment_id": 1,
-                                "created_at": expect.any(String),
-                                "votes": 16,
+                            .then(response => {
+                                expect(response.body).toEqual({
+                                    "article_id": 9,
+                                    "author": "butter_bridge",
+                                    "body": "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
+                                    "comment_id": 1,
+                                    "created_at": expect.any(String),
+                                    "votes": 16,
+                                })
                             })
-                        })
                     })
                 })
 
                 describe("Status 400 - Bad Request", () => {
                     test("errors when comment_id is not of the correct type", () => {
                         return request(app).get("/api/comments/dog").expect(400)
-                        .then(response => {
-                            expect(response.body.msg).toBe("Invalid endpoint")
-                        })
+                            .then(response => {
+                                expect(response.body.msg).toBe("Invalid endpoint")
+                            })
                     })
                 })
 
                 describe("Status 404 - Page Not Found", () => {
                     test("Comment not found when id is of correct type but does not exist in database", () => {
                         return request(app).get("/api/comments/10000").expect(404)
-                        .then(response => {
-                            expect(response.body.msg).toBe("Endpoint does not exist");
-                        })
+                            .then(response => {
+                                expect(response.body.msg).toBe("Endpoint does not exist");
+                            })
                     })
                 })
             })
@@ -1000,69 +999,69 @@ describe("/api", () => {
             describe("/ - PATCH", () => {
                 describe("status 200 - Success", () => {
                     test("returns a comment object with the vote value increased by the value given as an argument", () => {
-                        return request(app).patch("/api/comments/1").send({inc_votes: 1})
-                        .expect(200)
-                        .then((response) => {
-                            expect(response.body).toMatchObject({
-                                comment_id: expect.any(Number),
-                                author: expect.any(String),
-                                article_id: expect.any(Number),
-                                votes: expect.any(Number),
-                                body: expect.any(String),
-                                created_at: expect.any(String)
+                        return request(app).patch("/api/comments/1").send({ inc_votes: 1 })
+                            .expect(200)
+                            .then((response) => {
+                                expect(response.body).toMatchObject({
+                                    comment_id: expect.any(Number),
+                                    author: expect.any(String),
+                                    article_id: expect.any(Number),
+                                    votes: expect.any(Number),
+                                    body: expect.any(String),
+                                    created_at: expect.any(String)
+                                })
+                                expect(response.body.votes).toBe(17)
                             })
-                            expect(response.body.votes).toBe(17)
-                        })
                     })
 
                     test("returns a comment object with the updated comment body", () => {
-                        return request(app).patch("/api/comments/1").send({body: "No longer here!"}).expect(200)
-                        .then(response => {
-                            expect(response.body).toMatchObject({
-                                comment_id: expect.any(Number),
-                                author: expect.any(String),
-                                article_id: expect.any(Number),
-                                votes: expect.any(Number),
-                                body: expect.any(String),
-                                created_at: expect.any(String)
+                        return request(app).patch("/api/comments/1").send({ body: "No longer here!" }).expect(200)
+                            .then(response => {
+                                expect(response.body).toMatchObject({
+                                    comment_id: expect.any(Number),
+                                    author: expect.any(String),
+                                    article_id: expect.any(Number),
+                                    votes: expect.any(Number),
+                                    body: expect.any(String),
+                                    created_at: expect.any(String)
+                                })
+                                expect(response.body.votes).toBe(16);
+                                expect(response.body.body).toBe("No longer here! (edited)");
                             })
-                            expect(response.body.votes).toBe(16);
-                            expect(response.body.body).toBe("No longer here! (edited)");
-                        })
                     })
 
                     test("returns a comment object when passed multiple values to update", () => {
-                        return request(app).patch("/api/comments/1").send({inc_votes: 1, body: "No longer here!"}).expect(200)
-                        .then(response => {
-                            expect(response.body).toMatchObject({
-                                comment_id: expect.any(Number),
-                                author: expect.any(String),
-                                article_id: expect.any(Number),
-                                votes: expect.any(Number),
-                                body: expect.any(String),
-                                created_at: expect.any(String)
+                        return request(app).patch("/api/comments/1").send({ inc_votes: 1, body: "No longer here!" }).expect(200)
+                            .then(response => {
+                                expect(response.body).toMatchObject({
+                                    comment_id: expect.any(Number),
+                                    author: expect.any(String),
+                                    article_id: expect.any(Number),
+                                    votes: expect.any(Number),
+                                    body: expect.any(String),
+                                    created_at: expect.any(String)
+                                })
+                                expect(response.body.votes).toBe(17);
+                                expect(response.body.body).toBe("No longer here! (edited)");
                             })
-                            expect(response.body.votes).toBe(17);
-                            expect(response.body.body).toBe("No longer here! (edited)");
-                        })
                     })
                 })
 
                 describe("status 400 - Bad Request", () => {
                     test("returns  a bad request when the comment_id is not of the correct type", () => {
-                        return request(app).patch("/api/comments/dog").send({inc_votes: 1}).expect(400)
-                        .then((response) => {
-                            expect(response.body.msg).toBe("Invalid endpoint")
-                        })
+                        return request(app).patch("/api/comments/dog").send({ inc_votes: 1 }).expect(400)
+                            .then((response) => {
+                                expect(response.body.msg).toBe("Invalid endpoint")
+                            })
                     })
                 })
 
                 describe("status 404 - Page Not Found", () => {
                     test("returns a page not found error when the passed comment_id does not exist in the database but is of the correct type", () => {
-                        return request(app).patch("/api/comments/100000").send({inc_votes: 1}).expect(404)
-                        .then(response => {
-                            expect(response.body.msg).toBe("Endpoint does not exist");
-                        })
+                        return request(app).patch("/api/comments/100000").send({ inc_votes: 1 }).expect(404)
+                            .then(response => {
+                                expect(response.body.msg).toBe("Endpoint does not exist");
+                            })
                     })
                 })
             })
