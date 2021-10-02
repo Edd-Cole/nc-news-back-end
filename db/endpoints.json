@@ -22,6 +22,14 @@
         }
     },
     "/api/topics/:slug": {
+        "GET": {
+            "description": "returns a topic object with topic and description",
+            "queries": [],
+            "exampleResponse": {
+                "description": "books are made of this",
+                "slug": "paper"
+            }
+        },
         "PATCH": {
             "description": "edits a topic description",
             "queries": [],
