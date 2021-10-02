@@ -82,6 +82,19 @@ describe("/api", () => {
         })
 
         describe("/:slug", () => {
+            describe("/ - GET", () => {
+                describe("status 200 - Success", () => {
+                    test("returns a topic object when given the endpoint with the slug", () => {
+                        return request(app).get("/api/topics/paper").expect(200)
+                        .then(response => {
+                            expect(response.body.topic).toEqual(    {
+                                description: 'what books are made of',
+                                slug: 'paper'
+                            })
+                        })
+                    })
+                })
+            })
             describe("/ - PATCH", () => {
                 describe("status 200 - Success", () => {
                     test("correctly updates the description for the correct topic in the database", () => {
@@ -117,6 +130,7 @@ describe("/api", () => {
                     })
                 })
             })
+
             describe("/ - DELETE", () => {
                 describe("status 204 - Success: No Content", () => {
                     test("deletes a topic from the database, cascading all articles and comment", () => {
