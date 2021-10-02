@@ -1,4 +1,4 @@
-const { selectTopics, addTopic, updateTopicByID, removeTopicByID } = require("../models/models.topics.js");
+const { selectTopics, addTopic, updateTopicByID, removeTopicByID, selectTopicByID } = require("../models/models.topics.js");
 
 const getTopics = (request, response, next) => {
     selectTopics()
@@ -45,4 +45,15 @@ const deleteTopicByID = (request, response, next) => {
         })
 }
 
-module.exports = { getTopics, postTopic, patchTopicByID, deleteTopicByID };
+const getTopicByID = (request, response, next) => {
+    const { slug } = request.params;
+    selectTopicByID(slug)
+    .then(topic => {
+        response.status(200).send({ topic });
+    })
+    .catch(error => {
+        next(error)
+    })
+}
+
+module.exports = { getTopics, postTopic, patchTopicByID, deleteTopicByID, getTopicByID };

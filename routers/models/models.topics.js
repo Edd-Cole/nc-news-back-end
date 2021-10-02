@@ -59,4 +59,13 @@ const removeTopicByID = async(slug) => {
         })
 }
 
-module.exports = { selectTopics, addTopic, updateTopicByID, removeTopicByID }
+const selectTopicByID = (slug) => {
+    return db.query(`
+        SELECT * FROM topics WHERE slug = $1;
+    `, [slug])
+    .then(data => {
+        return data.rows[0];
+    })
+}
+
+module.exports = { selectTopics, addTopic, updateTopicByID, removeTopicByID, selectTopicByID }
